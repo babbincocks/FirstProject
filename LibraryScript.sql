@@ -495,6 +495,26 @@ BEGIN
 END
 GO
 ;
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [AddressWhole];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Customers];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [DeweyDecimal];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [EmailAddress];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Employees];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Fees];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [LibraryCard];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Media];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [OrderDetails];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Orders];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Person];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [PersonAddress];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Phone];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [PubInventory];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Publications];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [PubTracking];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Suppliers];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [TrackingDetails];
+GO
+
 
 insert into Person (PersonType, Title, FirstName, MidName, LastName, Suffix, ModifiedDate, ModifiedBy) values ( 'AU', null, 'Tersina', null, 'Piggrem', null, '02/20/2015', ORIGINAL_LOGIN());
 insert into Person (PersonType, Title, FirstName, MidName, LastName, Suffix, ModifiedDate, ModifiedBy) values ( 'AU', 'Dr', 'Tybie', 'Peyton', 'Tolland', null, '02/12/2015', ORIGINAL_LOGIN());
