@@ -247,7 +247,7 @@ END
 
 GO
 
-
+--SELECT * FROM Companies
 
 --INSERT Companies (CompanyName, BusinessType)
 --VALUES ('Brimbo Fungus Inc.', 'Account')
@@ -256,15 +256,16 @@ GO
 --If BusinessTypes is updated, the instances of it in Companies needs to change as well.
 CREATE TRIGGER trg_BusinessTypes_Companies
 ON BusinessTypes
-AFTER DELETE
+AFTER UPDATE
 AS
 BEGIN
 	IF  EXISTS (SELECT *
 				FROM deleted D, Companies C
 				WHERE D.BusinessType = C.BusinessType)
 			BEGIN
-			DECLARE @In INT = (SELECT BusinessType
-								FROM inserted)
+			DECLARE @In VARCHAR(255) = (SELECT I.BusinessType
+								FROM inserted I
+								)
 				UPDATE Companies
 				SET BusinessType = @In
 				FROM deleted D, Companies C
@@ -284,27 +285,25 @@ END
 
 GO
 
---CREATE TRIGGER trg_Companies_DeleteFK
---ON Companies
---INSTEAD OF DELETE
---AS
---BEGIN
-
---		IF EXISTS (	SELECT * 
---					FROM BusinessTypes, deleted
---					WHERE )
 
 
+CREATE TRIGGER trg_BusinessTypes_DeleteTree
+ON BusinessTypes
+INSTEAD OF DELETE
+AS
+BEGIN
+
+		IF EXISTS (	SELECT * 
+					FROM Companies C, deleted D
+					WHERE d.BusinessType = C.BusinessType)
+					
+						RAISERROR ('Delete or update all instances of this business type in the Companies table before deleting this business type.', 16, 1)
+					
 
 
+END
 
-
-
-
-
---END
-
---GO
+GO
 
 --Contacts connects to Companies
 
