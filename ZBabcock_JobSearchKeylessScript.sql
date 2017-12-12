@@ -88,10 +88,6 @@ CREATE TABLE Leads
 	Selected BIT DEFAULT 0,
 	ModifiedDate DATETIME NOT NULL DEFAULT GETDATE(),
 	CONSTRAINT PK_LeadID PRIMARY KEY (LeadID),
-	CONSTRAINT FK_Leads_Companies FOREIGN KEY (CompanyID) REFERENCES Companies(CompanyID),
-	CONSTRAINT FK_Leads_Contacts FOREIGN KEY (ContactID) REFERENCES Contacts(ContactID),
-	CONSTRAINT FK_Leads_Agencies FOREIGN KEY (AgencyID) REFERENCES Companies(CompanyID),
-	CONSTRAINT FK_Leads_Sources FOREIGN KEY (SourceID) REFERENCES Sources(SourceID),
 	CONSTRAINT CK_RecordDateFuture CHECK (RecordDate <= GETDATE()),
 	CONSTRAINT CK_EmploymentType CHECK (EmploymentType IN ('Full-time','Full Time','Part-time','Part Time','Contractor','Temporary','Seasonal','Intern','Freelance','Volunteer')),
 	
@@ -180,9 +176,9 @@ GO
 
 
 
-CREATE TRIGGER trg_Ins_AgencyOnly
+CREATE TRIGGER trg_Leads_FK
 ON Leads
-AFTER  INSERT
+AFTER  INSERT, UPDATE
 AS
 BEGIN
 
@@ -190,30 +186,73 @@ BEGIN
 		BEGIN
 
 		IF     EXISTS    (SELECT * 
-							FROM Companies, inserted
-							WHERE Agency = 0 AND Companies.CompanyID = inserted.AgencyID)
-				 BEGIN
+							FROM Companies C, inserted I
+							WHERE Agency = 0 AND C.CompanyID = i.AgencyID)
+				 
 					
-							
+						BEGIN	
 								RAISERROR ('Only Agencies may appear in the AgencyID field. Check the Companies table and try again.', 16, 1)
 								ROLLBACK TRANSACTION
-							
-					END
+						END	
+					
 			
 		END
 	
-	
+	IF EXISTS (SELECT * FROM inserted WHERE CompanyID IS NOT NULL)
+		BEGIN
+
+		IF EXISTS (SELECT *
+					FROM inserted
+					WHERE CompanyID NOT IN (SELECT CompanyID FROM Companies))
+
+					BEGIN
+						RAISERROR ('Only valid companies can be inserted into the Leads table. Check the Companies table and try again.', 16, 1)
+						ROLLBACK TRANSACTION
+					END
+
+
+		END
+
+		IF EXISTS (SELECT * FROM inserted WHERE ContactID IS NOT NULL)
+			BEGIN
+
+			IF EXISTS (SELECT *
+					FROM inserted
+					WHERE ContactID NOT IN (SELECT ContactID FROM Contacts))
+
+					BEGIN
+						RAISERROR ('Only valid contacts can be inserted into the Leads table. Check the Contacts table and try again.', 16, 1)
+						ROLLBACK TRANSACTION
+					END
+
+
+
+			END
+
+		IF EXISTS (SELECT * FROM inserted WHERE SourceID IS NOT NULL)
+			BEGIN
+
+			IF EXISTS (SELECT *
+					FROM inserted
+					WHERE SourceID NOT IN (SELECT SourceID FROM Sources))
+
+					BEGIN
+						RAISERROR ('Only valid sources can be inserted into the Leads table. Check the Sources table and try again.', 16, 1)
+						ROLLBACK TRANSACTION
+					END
+
+
+
+			END
 END
 GO
 PRINT 'INSERT Trigger Created'
 
 GO
---INSERT Leads (RecordDate, JobTitle, AgencyID)
---VALUES ('01-01-2001', 'AAAAA', 2)
---SELECT * FROM Leads
 
 
 
+GO
 --Companies connects to BusinessTypes
 CREATE TRIGGER trg_Companies_CreateFK
 ON Companies
@@ -527,3 +566,6 @@ VALUES (5, 'Inquiry', NULL, 1)
 GO
 ;
 
+--INSERT Leads (RecordDate, JobTitle, SourceID)
+--VALUES ('01-01-2001', 'AAAAA', 6)
+--SELECT * FROM Leads
