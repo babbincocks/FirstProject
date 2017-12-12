@@ -186,6 +186,7 @@ GO
 --INSTEAD OF  INSERT
 --AS
 --BEGIN
+
 --	IF     EXISTS (SELECT * FROM inserted WHERE AgencyID IS NULL)
 --	RETURN
 	
@@ -224,21 +225,45 @@ ON Companies
 INSTEAD OF INSERT, UPDATE
 AS
 BEGIN
---If BusinessTypes is updated, the instances of it in Companies needs to change as well. If a value is 
---inserted into Companies, it must be in BusinessTypes as well. It also must allow NULLS.
-		IF  EXISTS (SELECT *
-					FROM  inserted
-					WHERE BusinessType IS NOT NULL)
+-- If a value is inserted into Companies, it must be in BusinessTypes as well. It also must allow NULLS.
+	IF  EXISTS (SELECT *
+				FROM  inserted
+				WHERE BusinessType IS NOT NULL)
+			BEGIN
+				IF EXISTS	  (	SELECT *
+								FROM BusinessTypes B, inserted I
+								WHERE I.BusinessType <> B.BusinessType
+								)
 				BEGIN
-					IF EXISTS	  (	SELECT *
-									FROM BusinessTypes, inserted, Companies
+					RAISERROR ('Invalid Business Type inserted. Refer to the BusinessTypes 
+								table and try again.', 16, 1)
+				END
+			END
 
-									)
+END
+
+GO
+
+--If BusinessTypes is updated, the instances of it in Companies needs to change as well.
+CREATE TRIGGER trg_BusinessTypes_Companies
+ON BusinessTypes
+AFTER INSERT, UPDATE
+AS
+BEGIN
+	IF  EXISTS (SELECT *
+				FROM deleted D, Companies C
+				WHERE D.BusinessType = C.BusinessType)
+			BEGIN
+			DECLARE @In INT = (SELECT)
+				UPDATE Companies
+				SET C.BusinessType = I.BusinessType
+				FROM deleted D, Companies C, inserted I
+				WHERE D.BusinessType = C.BusinessType
+						
 						
 
 
-
-				END
+			END
 
 
 
