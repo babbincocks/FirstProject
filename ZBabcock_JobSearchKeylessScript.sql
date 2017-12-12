@@ -66,8 +66,7 @@ CREATE TABLE Contacts
 	EMail VARCHAR(50) NULL,
 	Comments VARCHAR(255) NULL,
 	Active BIT DEFAULT -1
-	CONSTRAINT PK_ContactID PRIMARY KEY (ContactID),
-	CONSTRAINT FK_Contacts_Companies FOREIGN KEY (CompanyID) REFERENCES Companies(CompanyID)
+	CONSTRAINT PK_ContactID PRIMARY KEY (ContactID)
 )
 ;
 CREATE INDEX ind_CompanyID ON Contacts(CompanyID);
@@ -179,43 +178,39 @@ END
 PRINT 'Update Trigger Created'
 GO
 
---I CAN'T GET THIS TO WORK BECAUSE IT'S STUPID >:c I'll give a candy bar of choice (except Toblerone) to whoever can get this to work.
 
---CREATE TRIGGER trg_Ins_AgencyOnly
---ON Leads
---INSTEAD OF  INSERT
---AS
---BEGIN
 
---	IF     EXISTS (SELECT * FROM inserted WHERE AgencyID IS NULL)
---	RETURN
-	
---	ELSE BEGIN
---		IF     EXISTS    (SELECT * 
---							FROM Companies, inserted
---							WHERE Agency <> 0 AND Companies.CompanyID = inserted.AgencyID)
---				RETURN
---				ELSE BEGIN
---					IF	NOT EXISTS	(SELECT AgencyID
---							FROM inserted, Companies
---							WHERE Agency <> 0)
---						RETURN
---						ELSE BEGIN
+CREATE TRIGGER trg_Ins_AgencyOnly
+ON Leads
+AFTER  INSERT
+AS
+BEGIN
+
+	IF    EXISTS (SELECT * FROM inserted WHERE AgencyID IS NOT NULL)
+		BEGIN
+
+		IF     EXISTS    (SELECT * 
+							FROM Companies, inserted
+							WHERE Agency = 0 AND Companies.CompanyID = inserted.AgencyID)
+				 BEGIN
+					
 							
---								RAISERROR ('Only Agencies may appear in the AgencyID field. Check the Companies table and try again.', 16, 1)
-
---							END
---					END
-
---		END
-
+								RAISERROR ('Only Agencies may appear in the AgencyID field. Check the Companies table and try again.', 16, 1)
+								ROLLBACK TRANSACTION
+							
+					END
+			
+		END
 	
---END
---GO
---PRINT 'INSERT Trigger Created'
+	
+END
+GO
+PRINT 'INSERT Trigger Created'
 
-
-
+GO
+--INSERT Leads (RecordDate, JobTitle, AgencyID)
+--VALUES ('01-01-2001', 'AAAAA', 2)
+--SELECT * FROM Leads
 
 
 
@@ -241,8 +236,47 @@ BEGIN
 								ROLLBACK TRANSACTION 
 									
 				END
+			IF  EXISTS (SELECT *
+				FROM deleted D, Contacts C
+				WHERE D.CompanyID = C.CompanyID)
+			BEGIN
+			DECLARE @In INT = (SELECT I.CompanyID
+								FROM inserted I
+								)
+				UPDATE Contacts
+				SET CompanyID = @In
+				FROM deleted D, Companies C
+				WHERE D.BusinessType = C.BusinessType
+						
+						
+
+
+			END
 			
-			
+END
+
+GO
+
+CREATE TRIGGER trg_Companies_DeleteTree
+ON Companies
+INSTEAD OF DELETE
+AS
+BEGIN
+
+		IF EXISTS (	SELECT * 
+					FROM Contacts C, deleted D
+					WHERE d.CompanyID = C.CompanyID)
+					BEGIN
+						RAISERROR ('Delete or update all instances of this company in the Contacts table before deleting this company.', 16, 1)
+					END
+
+		IF EXISTS (	SELECT * 
+					FROM Leads L, deleted D
+					WHERE d.CompanyID = L.CompanyID OR d.CompanyID = L.AgencyID)
+					BEGIN
+						RAISERROR ('Delete or update all instances of this company/agency in the Leads table before deleting this company.', 16, 1)
+					END
+
 END
 
 GO

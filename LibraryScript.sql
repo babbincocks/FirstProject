@@ -496,7 +496,7 @@ END
 GO
 ;
 EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [AddressWhole];
-EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Customers];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all information on customers.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Customers];
 EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [DeweyDecimal];
 EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [EmailAddress];
 EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Employees];
