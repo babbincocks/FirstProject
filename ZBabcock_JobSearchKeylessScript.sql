@@ -121,6 +121,60 @@ CREATE INDEX ind_ActivityDate ON Activities(ActivityDate);
 CREATE INDEX ind_ActivityType ON Activities(ActivityType);
 
 GO
+
+
+CREATE TRIGGER trg_BusinessTypes_Companies
+ON BusinessTypes
+AFTER UPDATE
+AS
+BEGIN
+	IF  EXISTS (SELECT *
+				FROM deleted D, Companies C
+				WHERE D.BusinessType = C.BusinessType)
+			BEGIN
+			DECLARE @In VARCHAR(255) = (SELECT I.BusinessType
+								FROM inserted I
+								)
+				UPDATE Companies
+				SET BusinessType = @In
+				FROM deleted D, Companies C
+				WHERE D.BusinessType = C.BusinessType
+						
+						
+
+
+			END
+
+
+
+
+
+
+END
+
+GO
+
+
+
+CREATE TRIGGER trg_BusinessTypes_DeleteTree
+ON BusinessTypes
+INSTEAD OF DELETE
+AS
+BEGIN
+
+		IF EXISTS (	SELECT * 
+					FROM Companies C, deleted D
+					WHERE d.BusinessType = C.BusinessType)
+					
+						RAISERROR ('Delete or update all instances of this business type in the Companies table before deleting this business type.', 16, 1)
+					
+
+
+END
+
+GO
+
+
 CREATE TRIGGER trg_LeadUpdateDate
 ON Leads
 AFTER UPDATE
@@ -250,9 +304,24 @@ PRINT 'INSERT Trigger Created'
 
 GO
 
+CREATE TRIGGER trg_Leads_DeleteTree
+ON Leads
+INSTEAD OF DELETE
+AS
+BEGIN
 
+		IF EXISTS (	SELECT * 
+					FROM Activities A, deleted D
+					WHERE d.LeadID = A.LeadID)
+					BEGIN
+						RAISERROR ('Delete or update all instances of this lead in the Activities table before deleting this lead.', 16, 1)
+					END
 
+		
+END
 GO
+
+
 --Companies connects to BusinessTypes
 CREATE TRIGGER trg_Companies_CreateFK
 ON Companies
@@ -275,6 +344,7 @@ BEGIN
 								ROLLBACK TRANSACTION 
 									
 				END
+--If a CompanyID is changed in Companies that also shows up in Contacts (for whatever reason), the entry in Contacts will be update as well.
 			IF  EXISTS (SELECT *
 				FROM deleted D, Contacts C
 				WHERE D.CompanyID = C.CompanyID)
@@ -327,60 +397,27 @@ GO
 --SELECT * FROM Companies
 
 --If BusinessTypes is updated, the instances of it in Companies needs to change as well.
-CREATE TRIGGER trg_BusinessTypes_Companies
-ON BusinessTypes
-AFTER UPDATE
-AS
-BEGIN
-	IF  EXISTS (SELECT *
-				FROM deleted D, Companies C
-				WHERE D.BusinessType = C.BusinessType)
-			BEGIN
-			DECLARE @In VARCHAR(255) = (SELECT I.BusinessType
-								FROM inserted I
-								)
-				UPDATE Companies
-				SET BusinessType = @In
-				FROM deleted D, Companies C
-				WHERE D.BusinessType = C.BusinessType
-						
-						
 
 
-			END
+--Contacts connects to Companies
 
-
-
-
-
-
-END
-
-GO
-
-
-
-CREATE TRIGGER trg_BusinessTypes_DeleteTree
-ON BusinessTypes
+CREATE TRIGGER trg_Sources_DeleteTree
+ON Sources
 INSTEAD OF DELETE
 AS
 BEGIN
 
 		IF EXISTS (	SELECT * 
-					FROM Companies C, deleted D
-					WHERE d.BusinessType = C.BusinessType)
-					
-						RAISERROR ('Delete or update all instances of this business type in the Companies table before deleting this business type.', 16, 1)
-					
+					FROM Leads L, deleted D
+					WHERE d.SourceID = L.SourceID)
+					BEGIN
+						RAISERROR ('Delete or update all instances of this source in the Leads table before deleting this source.', 16, 1)
+					END
+
+
 
 
 END
-
-GO
-
---Contacts connects to Companies
-
-
 
 --Leads connects to Companies (CompanyID and AgencyID), Contacts, and Sources
 
