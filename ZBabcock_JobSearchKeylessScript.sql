@@ -183,7 +183,7 @@ BEGIN
 		SET @a = (SELECT LeadID FROM inserted)
 		UPDATE Leads
 		SET ModifiedDate = GETDATE()
-		WHERE LeadID = @a
+		WHERE (LeadID = @a) OR (LeadID IN (@a))
 
 
 
@@ -305,7 +305,7 @@ GO
 
 
 --Companies connects to BusinessTypes
-CREATE TRIGGER trg_Companies_CreateFK
+CREATE TRIGGER trg_Companies_FK
 ON Companies
 AFTER INSERT, UPDATE
 AS
@@ -371,13 +371,9 @@ END
 
 GO
 
---SELECT * FROM Companies
-
---INSERT Companies (CompanyName, BusinessType)
---VALUES ('Brimbo Fungus Inc.', 'Account')
---SELECT * FROM Companies
 
 --If BusinessTypes is updated, the instances of it in Companies needs to change as well.
+
 
 
 --Contacts connects to Companies
@@ -402,20 +398,28 @@ END
 
 GO
 
-----------CREATE TRIGGER trg_Sources_FK
-----------ON Sources
-----------AFTER INSERT, UPDATE
-----------AS 
-----------BEGIN
+CREATE TRIGGER trg_Contacts_FK
+ON Contacts
+AFTER INSERT, UPDATE
+AS 
+BEGIN
 
-		
+		IF EXISTS (SELECT CompanyID
+					FROM inserted
+					GROUP BY CompanyID
+					HAVING CompanyID NOT IN (SELECT CompanyID FROM Companies))
+
+				BEGIN
+						RAISERROR ('Invalid CompanyID inserted. Refer to the Companies table and try again.', 16,1)
+						ROLLBACK TRANSACTION
+				END
 
 
 
 
 
-----------END
-----------GO
+END
+GO
 
 CREATE TRIGGER trg_Contacts_DeleteTree
 ON Contacts
@@ -437,6 +441,26 @@ END
 
 GO
 
+CREATE TRIGGER trg_Activities_FK
+ON Activities
+AFTER INSERT, UPDATE
+AS
+BEGIN
+
+		IF EXISTS (SELECT LeadID
+					FROM inserted
+					GROUP BY LeadID
+					HAVING LeadID NOT IN (SELECT LeadID FROM Leads))
+
+				BEGIN
+						RAISERROR ('Invalid LeadID inserted. Refer to the Leads table and try again.', 16,1)
+						ROLLBACK TRANSACTION
+				END
+
+
+
+END
+GO
 --Leads connects to Companies (CompanyID and AgencyID), Contacts, and Sources
 
 
@@ -592,7 +616,7 @@ VALUES ('12-05-2017', 'Junior Software Engineer',
 						performs best in peer code review! Perform unit testing of changes React to any issues uncovered in the continuous 
 						integration (JetBrains TeamCity), automated testing processes (Selenium) and manual testing process, and Review 
 						finished product with Sr. Software Engineer and adjust as needed.', 
-		'Full-time', 'FORT LAUDERDALE, FL - 33308', 1, 3, NULL, 3, 2)
+		'Full-time', 'Fort Lauderdale, FL - 33308', 1, 3, NULL, 3, 2)
 ;
 PRINT 'Lead 3'
 INSERT Leads (RecordDate, JobTitle, [Description], EmploymentType, Location, Active, CompanyID, AgencyID, ContactID, SourceID)
@@ -624,3 +648,8 @@ GO
 --INSERT Leads (RecordDate, JobTitle, SourceID)
 --VALUES ('01-01-2001', 'AAAAA', 6)
 --SELECT * FROM Leads
+
+
+--INSERT Companies (CompanyName, BusinessType)
+--VALUES ('Brimbo Fungus Inc.', 'Account')
+--SELECT * FROM Companies
