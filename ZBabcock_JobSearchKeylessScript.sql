@@ -112,7 +112,6 @@ CREATE TABLE Activities
 	Complete BIT NOT NULL DEFAULT 0,
 	ReferenceLink VARCHAR(255) NULL,
 	CONSTRAINT PK_Activities_ActivityID PRIMARY KEY (ActivityID),
-	CONSTRAINT FK_Activities_LeadID FOREIGN KEY (LeadID) REFERENCES Leads(LeadID),
 	CONSTRAINT CK_ActiveTypeValid CHECK (ActivityType IN ('Inquiry', 'Application','Contact','Interview','Follow-up','Correspondence','Documentation','Closure','Other'))
 );
 
@@ -210,23 +209,6 @@ END
 
 GO
 
-CREATE TRIGGER trg_Upd_AgencyOnly
-ON Leads
-INSTEAD OF  UPDATE
-AS
-BEGIN
-		IF  EXISTS    (	SELECT * 
-							FROM Companies, inserted
-							WHERE Agency = 0 AND Companies.CompanyID = inserted.AgencyID) 
-		 BEGIN 
-			RAISERROR ('Only Agencies may appear in the AgencyID field. Check the Companies table and try again.', 16, 1) 
-		 END
-
-
-END
-
-PRINT 'Update Trigger Created'
-GO
 
 
 
@@ -339,12 +321,11 @@ BEGIN
 				)
 				
 				BEGIN
-								RAISERROR ('Invalid Business Type inserted. Refer to the BusinessTypes 
-								table and try again.', 16, 1)
+								RAISERROR ('Invalid Business Type inserted. Refer to the BusinessTypes table and try again.', 16, 1)
 								ROLLBACK TRANSACTION 
 									
 				END
---If a CompanyID is changed in Companies that also shows up in Contacts (for whatever reason), the entry in Contacts will be update as well.
+--If a CompanyID is changed in Companies that also shows up in Contacts (for whatever reason), the entry in Contacts will be updated as well.
 			IF  EXISTS (SELECT *
 				FROM deleted D, Contacts C
 				WHERE D.CompanyID = C.CompanyID)
@@ -354,8 +335,8 @@ BEGIN
 								)
 				UPDATE Contacts
 				SET CompanyID = @In
-				FROM deleted D, Companies C
-				WHERE D.BusinessType = C.BusinessType
+				FROM deleted D, Contacts C
+				WHERE D.CompanyID = C.CompanyID
 						
 						
 
@@ -418,6 +399,43 @@ BEGIN
 
 
 END
+
+GO
+
+----------CREATE TRIGGER trg_Sources_FK
+----------ON Sources
+----------AFTER INSERT, UPDATE
+----------AS 
+----------BEGIN
+
+		
+
+
+
+
+
+----------END
+----------GO
+
+CREATE TRIGGER trg_Contacts_DeleteTree
+ON Contacts
+INSTEAD OF DELETE
+AS
+BEGIN
+
+		IF EXISTS (	SELECT * 
+					FROM Leads L, deleted D
+					WHERE d.ContactID = L.ContactID)
+					BEGIN
+						RAISERROR ('Delete or update all instances of this contact in the Leads table before deleting this contact.', 16, 1)
+					END
+
+
+
+
+END
+
+GO
 
 --Leads connects to Companies (CompanyID and AgencyID), Contacts, and Sources
 
