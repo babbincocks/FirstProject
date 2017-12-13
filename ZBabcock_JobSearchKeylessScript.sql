@@ -321,27 +321,11 @@ BEGIN
 				)
 				
 				BEGIN
-								RAISERROR ('Invalid Business Type inserted. Refer to the BusinessTypes table and try again.', 16, 1)
-								ROLLBACK TRANSACTION 
+						RAISERROR ('Invalid Business Type inserted. Refer to the BusinessTypes table and try again.', 16, 1)
+						ROLLBACK TRANSACTION 
 									
 				END
---If a CompanyID is changed in Companies that also shows up in Contacts (for whatever reason), the entry in Contacts will be updated as well.
-			IF  EXISTS (SELECT *
-				FROM deleted D, Contacts C
-				WHERE D.CompanyID = C.CompanyID)
-			BEGIN
-			DECLARE @In INT = (SELECT I.CompanyID
-								FROM inserted I
-								)
-				UPDATE Contacts
-				SET CompanyID = @In
-				FROM deleted D, Contacts C
-				WHERE D.CompanyID = C.CompanyID
-						
-						
 
-
-			END
 			
 END
 
@@ -372,11 +356,11 @@ END
 GO
 
 
---If BusinessTypes is updated, the instances of it in Companies needs to change as well.
 
 
 
---Contacts connects to Companies
+
+
 
 CREATE TRIGGER trg_Sources_DeleteTree
 ON Sources
@@ -447,6 +431,8 @@ AFTER INSERT, UPDATE
 AS
 BEGIN
 
+
+
 		IF EXISTS (SELECT LeadID
 					FROM inserted
 					GROUP BY LeadID
@@ -457,6 +443,7 @@ BEGIN
 						ROLLBACK TRANSACTION
 				END
 
+		
 
 
 END
