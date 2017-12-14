@@ -180,39 +180,137 @@ END
 PRINT 'Update Trigger Created'
 GO
 
---I CAN'T GET THIS TO WORK BECAUSE IT'S STUPID >:c I'll give a candy bar of choice (except Toblerone) to whoever can get this to work.
 
---CREATE TRIGGER trg_Ins_AgencyOnly
---ON Leads
---INSTEAD OF  INSERT
---AS
---BEGIN
---	IF     EXISTS (SELECT * FROM inserted WHERE AgencyID IS NULL)
---	RETURN
-	
---	ELSE BEGIN
---		IF     EXISTS    (SELECT * 
---							FROM Companies, inserted
---							WHERE Agency <> 0 AND Companies.CompanyID = inserted.AgencyID)
---				RETURN
---				ELSE BEGIN
---					IF	NOT EXISTS	(SELECT AgencyID
---							FROM inserted, Companies
---							WHERE Agency <> 0)
---						RETURN
---						ELSE BEGIN
-							
---								RAISERROR ('Only Agencies may appear in the AgencyID field. Check the Companies table and try again.', 16, 1)
 
---							END
---					END
+CREATE TRIGGER trg_Ins_AgencyOnly
+ON Leads
+AFTER  INSERT, UPDATE
+AS
+BEGIN
+	IF    EXISTS (SELECT * FROM inserted WHERE AgencyID IS NOT NULL)
+		BEGIN
 
---		END
+		IF     EXISTS    (SELECT * 
+							FROM Companies C, inserted I
+							WHERE Agency = 0 AND C.CompanyID = i.AgencyID)
+				 
+					
+						BEGIN	
+								RAISERROR ('Only Agencies may appear in the AgencyID field. Check the Companies table and try again.', 16, 1)
+								ROLLBACK TRANSACTION
+						END	
+					
+			
+		END
 
 	
---END
---GO
+END
+GO
 --PRINT 'INSERT Trigger Created'
+
+SET DATEFIRST 1
+GO
+
+CREATE VIEW [LeadsPerDay]
+AS
+SELECT MAX(RecordDate) [Date], COUNT(RecordDate) [# of Job Leads]
+FROM Leads
+GROUP BY DATEPART(Day, RecordDate)
+
+GO
+
+CREATE VIEW [LeadsPerWeek]
+AS
+SELECT DATEADD(DAY, 1 - DATEPART(WEEKDAY, RecordDate), RecordDate) [Date], COUNT(LeadID) [# of Job Leads]
+FROM Leads
+GROUP BY DATEADD(DAY, 1 - DATEPART(WEEKDAY, RecordDate), RecordDate)
+
+GO
+
+CREATE VIEW [OldActiveLeads]
+AS
+SELECT L.JobTitle, C.CompanyName, CONCAT (ContactFirstName, ' ', ContactLastName) [Contact Name], CO.Phone, CO.EMail
+FROM Leads L
+INNER JOIN Activities A
+ON L.LeadID = A.LeadID
+INNER JOIN Companies C
+ON C.CompanyID = L.CompanyID
+INNER JOIN Contacts CO
+ON CO.CompanyID = C.CompanyID
+WHERE L.Active <> 0 AND A.ActivityDate <= DATEADD(DAY, -7, GETDATE())
+
+GO
+
+CREATE VIEW [LeadsPerSource]
+AS
+SELECT MAX(S.SourceName) [Source Name], COUNT(LeadID) [# of Leads]
+FROM Leads L
+INNER JOIN Sources S
+ON S.SourceID = L.SourceID
+GROUP BY L.SourceID
+
+GO
+
+CREATE VIEW [ActiveContacts]
+AS
+SELECT CO.*, C.CompanyName, CASE C.Agency WHEN 1 THEN 'Agency' ELSE 'Not Agency' END [Agency?]
+FROM Contacts CO
+INNER JOIN Companies C
+ON CO.CompanyID = C.CompanyID
+WHERE CO.Active <> 0
+
+
+GO
+
+CREATE VIEW [ActiveLeadCallList]
+AS
+SELECT  MAX(C.CompanyName) [Company], MAX(L.JobTitle) [Job Title], MAX(L.[Description]) [Job Description],
+			 MAX(L.Location) [Job Location], CONCAT(MAX(CO.ContactFirstName), ' ', MAX(CO.ContactLastName)) [Contact], 
+				MAX(CO.Phone) [Contact Phone], DATEDIFF(DAY, MAX(A.ActivityDate), GETDATE()) [Days Since Last Activity]
+FROM Leads L
+INNER JOIN Companies C
+ON C.CompanyID = L.CompanyID
+INNER JOIN Contacts CO
+ON CO.CompanyID = C.CompanyID
+INNER JOIN Activities A
+ON A.LeadID = L.LeadID
+WHERE L.Active <> 0
+GROUP BY A.LeadID
+
+GO
+
+CREATE VIEW [SearchLog]
+AS
+SELECT ActivityDate, ActivityType, L.JobTitle, C.CompanyName, CASE A.Complete WHEN 1 THEN 'Yes' ELSE 'No' END [Complete?]
+FROM Activities A
+INNER JOIN Leads L
+ON L.LeadID = A.LeadID
+INNER JOIN Companies C
+ON C.CompanyID = L.CompanyID
+INNER JOIN Contacts CO
+ON CO.CompanyID = C.CompanyID
+WHERE ActivityDate >= DATEADD(DAY, -30, GETDATE()) AND ActivityDate <= GETDATE()
+
+GO
+CREATE VIEW [LeadReport]
+AS
+SELECT		L.LeadID, L.RecordDate [Recorded Date], L.JobTitle [Job Title], L.[Description] [Job Description], 
+					L.EmploymentType [Employment Type], L.Location [Job Location], L.Active, L.CompanyID, L.AgencyID, L.ContactID, L.SourceID, L.Selected, L.ModifiedDate, 
+					C.CompanyName [Company Name], AG.CompanyName [Agency Name], 
+						CONCAT(CO.CourtesyTitle, ' ', CO.ContactFirstName, ' ', CO.ContactLastName) [Contact Name], 
+							CO.Title [Contact Title], CO.Phone [Contact Phone], CO.Extension, 
+								CO.EMail [Contact E-mail], S.SourceName [Lead Source]
+FROM		Leads L
+INNER JOIN	Companies C
+ON			C.CompanyID = L.CompanyID
+LEFT JOIN	Companies AG
+ON			AG.CompanyID = L.AgencyID
+INNER JOIN	Contacts CO
+ON			CO.CompanyID = C.CompanyID
+INNER JOIN	Sources S
+ON			S.SourceID = L.SourceID
+
+GO
 
 ;
 INSERT INTO BusinessTypes (BusinessType)
