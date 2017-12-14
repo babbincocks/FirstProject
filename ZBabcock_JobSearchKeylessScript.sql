@@ -480,15 +480,49 @@ INNER JOIN Contacts CO
 ON CO.CompanyID = C.CompanyID
 WHERE L.Active <> 0 AND A.ActivityDate <= DATEADD(DAY, -7, GETDATE())
 
+GO
 
+CREATE VIEW [LeadsPerSource]
+AS
+SELECT MAX(S.SourceName) [Source Name], COUNT(LeadID) [# of Leads]
+FROM Leads L
+INNER JOIN Sources S
+ON S.SourceID = L.SourceID
+GROUP BY L.SourceID
+
+GO
+
+CREATE VIEW ActiveContacts
+AS
+SELECT CO.*, C.CompanyName, CASE C.Agency WHEN 1 THEN 'Agency' ELSE 'Not Agency' END [Agency?]
+FROM Contacts CO
+INNER JOIN Companies C
+ON CO.CompanyID = C.CompanyID
+WHERE CO.Active <> 0
 
 
 GO
 
+CREATE VIEW ActiveLeadCallList
+AS
+SELECT  MAX(C.CompanyName) [Company], MAX(L.JobTitle) [Job Title], MAX(L.[Description]) [Job Description],
+			 MAX(L.Location) [Job Location], CONCAT(MAX(CO.ContactFirstName), ' ', MAX(CO.ContactLastName)) [Contact], 
+				MAX(CO.Phone) [Contact Phone], DATEDIFF(DAY, MAX(A.ActivityDate), GETDATE()) [Days Since Last Activity]
+FROM Leads L
+INNER JOIN Companies C
+ON C.CompanyID = L.CompanyID
+INNER JOIN Contacts CO
+ON CO.CompanyID = C.CompanyID
+INNER JOIN Activities A
+ON A.LeadID = L.LeadID
+WHERE L.Active <> 0
+GROUP BY A.LeadID
+
+GO
 
 
-
-
+--SELECT
+--FROM 
 
 
 
@@ -590,7 +624,7 @@ INSERT Companies (CompanyName, Address1, Address2, City, [State], ZIP, Phone, Fa
 VALUES ('AppleOne', '500 W Cypress Creek Rd', '#150', 'Fort Lauderdale', 'FL', '33309', '(954) 492-0550', NULL, NULL, 'https://www.appleone.com/', NULL, 1)
 
 INSERT Contacts (CompanyID, CourtesyTitle, ContactFirstName, ContactLastName, Title, Phone, Extension, Fax, EMail, Comments, Active)
-VALUES (1, 'Mr.', 'Harry', 'Simmons', 'Hiring Manager', '(425) 233-8578', '38879', NULL, NULL, NULL, 1)
+VALUES (1, 'Mr.', 'Harry', 'Simmons', 'Hiring Manager', '(425) 233-8578', '38879', NULL, NULL, NULL, 0)
 ;
 INSERT Contacts (CompanyID, CourtesyTitle, ContactFirstName, ContactLastName, Title, Phone, Extension, Fax, EMail, Comments, Active)
 VALUES (2, 'Ms.', 'Rowena', 'Burns', 'Hiring Manager', NULL, NULL, NULL, NULL, NULL, 1)
@@ -663,6 +697,9 @@ VALUES (4, 'Inquiry', NULL, 1)
 ;
 INSERT Activities (LeadID, ActivityType, ActivityDetails, Complete)
 VALUES (5, 'Inquiry', NULL, 1)
+;
+INSERT Activities (LeadID,ActivityDate ,ActivityType, ActivityDetails, Complete)
+VALUES (1, '12-03-2017','Follow-up', NULL, 1)
 GO
 ;
 
