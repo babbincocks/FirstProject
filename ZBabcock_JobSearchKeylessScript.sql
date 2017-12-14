@@ -448,10 +448,44 @@ BEGIN
 
 END
 GO
---Leads connects to Companies (CompanyID and AgencyID), Contacts, and Sources
+
+SET DATEFIRST 1
+GO
+
+CREATE VIEW [LeadsPerDay]
+AS
+SELECT MAX(RecordDate) [Date], COUNT(RecordDate) [# of Job Leads]
+FROM Leads
+GROUP BY DATEPART(Day, RecordDate)
+
+GO
+
+CREATE VIEW [LeadsPerWeek]
+AS
+SELECT DATEADD(DAY, 1 - DATEPART(WEEKDAY, RecordDate), RecordDate) [Date], COUNT(RecordDate) [# of Job Leads]
+FROM Leads
+GROUP BY DATEADD(DAY, 1 - DATEPART(WEEKDAY, RecordDate), RecordDate)
+
+GO
+
+CREATE VIEW [OldActiveLeads]
+AS
+SELECT L.JobTitle, C.CompanyName, CONCAT (ContactFirstName, ' ', ContactLastName) [Contact Name], CO.Phone, CO.EMail
+FROM Leads L
+INNER JOIN Activities A
+ON L.LeadID = A.LeadID
+INNER JOIN Companies C
+ON C.CompanyID = L.CompanyID
+INNER JOIN Contacts CO
+ON CO.CompanyID = C.CompanyID
+WHERE L.Active <> 0 AND A.ActivityDate <= DATEADD(DAY, -7, GETDATE())
 
 
---Activities connect to Leads
+
+
+GO
+
+
 
 
 
@@ -572,7 +606,7 @@ VALUES (5, 'Mr.', 'Franklin', 'McBride', 'Hiring Manager', '(954) 492-0550', '78
 ;
 
 INSERT Leads (RecordDate, JobTitle, [Description], EmploymentType, Location, Active, CompanyID, AgencyID, ContactID, SourceID, Selected)
-VALUES ('12-05-2017', 'Software Development Engineer', 
+VALUES ('12-01-2017', 'Software Development Engineer', 
 											'We are looking for traditional SDE who is strong coding with C# and preferably has written Autopilot watchdogs or at least has 
 											experience with Autopilot. Candidates with past MS experience is a plus. The skills requirement are the following: Fluent in C#, 
 											fundamentals of cloud engineering (understanding of distributed systems, building for scale, understanding of ways to handle disaster 
@@ -583,7 +617,7 @@ VALUES ('12-05-2017', 'Software Development Engineer',
 
 PRINT 'Lead 1'
 INSERT Leads (RecordDate, JobTitle, [Description], EmploymentType, Location, Active, CompanyID, AgencyID, ContactID, SourceID)
-VALUES ('12-05-2017', 'Software Development Analyst Associate', 
+VALUES ('12-06-2017', 'Software Development Analyst Associate', 
 															'Will have an opportunity to work with a diverse team ensuring the successful completion of software development activities aimed to support Lockheed Martin program supply chain logistics operational requirements. 
 															Will design, develop, document and test software that contains logical and mathematical solutions taking into account project constraints of scope, cost, risk and schedule. Technical fortitude and dedicated focus shall be required for successful code implementations to a large scale logistics/supply chain management system that will interface with multiple external systems in its support of program supply chain logistics operational requirements. 
 															This position will grow skills that will learn to articulate technical requirements to non-technical customers to ensure understanding of capabilities being developed and released to both internal and external users. 
@@ -593,7 +627,7 @@ VALUES ('12-05-2017', 'Software Development Analyst Associate',
 ;
 PRINT 'Lead 2'
 INSERT Leads (RecordDate, JobTitle, [Description], EmploymentType, Location, Active, CompanyID, AgencyID, ContactID, SourceID)
-VALUES ('12-05-2017', 'Junior Software Engineer', 
+VALUES ('12-06-2017', 'Junior Software Engineer', 
 						'We are looking for software engineers. If you have a desire to stretch yourself to support the delivery of 
 						great products and features then JDi Data is the perfect place for you! Responsibilities Include: 
 						Review daily workload in issue tracking tool (Atlassian JIRA) with Sr. Software Engineer, 
@@ -607,16 +641,16 @@ VALUES ('12-05-2017', 'Junior Software Engineer',
 ;
 PRINT 'Lead 3'
 INSERT Leads (RecordDate, JobTitle, [Description], EmploymentType, Location, Active, CompanyID, AgencyID, ContactID, SourceID)
-VALUES ('12/05/17', 'Software Design Engineer Associate', NULL, 'Full-time', 'Orlando FL 32826', 1, 4, NULL, 4, 1)
+VALUES ('12/08/17', 'Software Design Engineer Associate', NULL, 'Full-time', 'Orlando FL 32826', 1, 4, NULL, 4, 1)
 ;
 PRINT 'Lead 4'
 INSERT Leads (RecordDate, JobTitle, [Description], EmploymentType, Location, Active, CompanyID, AgencyID, ContactID, SourceID)
-VALUES ('12/05/17', 'Software Developer', NULL, 'Full-time', 'Fort Lauderdale FL 33309', 1, 5, 5, 4, 1)
+VALUES ('12/12/17', 'Software Developer', NULL, 'Full-time', 'Fort Lauderdale FL 33309', 1, 5, 5, 4, 1)
 ;
 PRINT 'Lead 5'
 
-INSERT Activities (LeadID, ActivityType, ActivityDetails, Complete)
-VALUES (1, 'Inquiry', NULL, 1)
+INSERT Activities (LeadID,ActivityDate ,ActivityType, ActivityDetails, Complete)
+VALUES (1, '12-01-2017','Inquiry', NULL, 1)
 ;
 INSERT Activities (LeadID, ActivityType, ActivityDetails, Complete)
 VALUES (2, 'Inquiry', NULL, 1)
