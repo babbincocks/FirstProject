@@ -462,7 +462,7 @@ GO
 
 CREATE VIEW [LeadsPerWeek]
 AS
-SELECT DATEADD(DAY, 1 - DATEPART(WEEKDAY, RecordDate), RecordDate) [Date], COUNT(RecordDate) [# of Job Leads]
+SELECT DATEADD(DAY, 1 - DATEPART(WEEKDAY, RecordDate), RecordDate) [Date], COUNT(LeadID) [# of Job Leads]
 FROM Leads
 GROUP BY DATEADD(DAY, 1 - DATEPART(WEEKDAY, RecordDate), RecordDate)
 
@@ -492,7 +492,7 @@ GROUP BY L.SourceID
 
 GO
 
-CREATE VIEW ActiveContacts
+CREATE VIEW [ActiveContacts]
 AS
 SELECT CO.*, C.CompanyName, CASE C.Agency WHEN 1 THEN 'Agency' ELSE 'Not Agency' END [Agency?]
 FROM Contacts CO
@@ -503,7 +503,7 @@ WHERE CO.Active <> 0
 
 GO
 
-CREATE VIEW ActiveLeadCallList
+CREATE VIEW [ActiveLeadCallList]
 AS
 SELECT  MAX(C.CompanyName) [Company], MAX(L.JobTitle) [Job Title], MAX(L.[Description]) [Job Description],
 			 MAX(L.Location) [Job Location], CONCAT(MAX(CO.ContactFirstName), ' ', MAX(CO.ContactLastName)) [Contact], 
@@ -520,9 +520,38 @@ GROUP BY A.LeadID
 
 GO
 
+CREATE VIEW [SearchLog]
+AS
+SELECT ActivityDate, ActivityType, L.JobTitle, C.CompanyName, CASE A.Complete WHEN 1 THEN 'Yes' ELSE 'No' END [Complete?]
+FROM Activities A
+INNER JOIN Leads L
+ON L.LeadID = A.LeadID
+INNER JOIN Companies C
+ON C.CompanyID = L.CompanyID
+INNER JOIN Contacts CO
+ON CO.CompanyID = C.CompanyID
+WHERE ActivityDate >= DATEADD(DAY, -30, GETDATE()) AND ActivityDate <= GETDATE()
 
---SELECT
---FROM 
+GO
+CREATE VIEW [LeadReport]
+AS
+SELECT		L.LeadID, L.RecordDate [Recorded Date], L.JobTitle [Job Title], L.[Description] [Job Description], 
+					L.EmploymentType [Employment Type], L.Location [Job Location], L.Active, L.CompanyID, L.AgencyID, L.ContactID, L.SourceID, L.Selected, L.ModifiedDate, 
+					C.CompanyName [Company Name], AG.CompanyName [Agency Name], 
+						CONCAT(CO.CourtesyTitle, ' ', CO.ContactFirstName, ' ', CO.ContactLastName) [Contact Name], 
+							CO.Title [Contact Title], CO.Phone [Contact Phone], CO.Extension, 
+								CO.EMail [Contact E-mail], S.SourceName [Lead Source]
+FROM		Leads L
+INNER JOIN	Companies C
+ON			C.CompanyID = L.CompanyID
+LEFT JOIN	Companies AG
+ON			AG.CompanyID = L.AgencyID
+INNER JOIN	Contacts CO
+ON			CO.CompanyID = C.CompanyID
+INNER JOIN	Sources S
+ON			S.SourceID = L.SourceID
+
+GO
 
 
 
@@ -675,7 +704,7 @@ VALUES ('12-06-2017', 'Junior Software Engineer',
 ;
 PRINT 'Lead 3'
 INSERT Leads (RecordDate, JobTitle, [Description], EmploymentType, Location, Active, CompanyID, AgencyID, ContactID, SourceID)
-VALUES ('12/08/17', 'Software Design Engineer Associate', NULL, 'Full-time', 'Orlando FL 32826', 1, 4, NULL, 4, 1)
+VALUES ('12/08/17', 'Software Design Engineer Associate', NULL, 'Full-time', 'Orlando FL 32826', 1, 4, 5, 4, 1)
 ;
 PRINT 'Lead 4'
 INSERT Leads (RecordDate, JobTitle, [Description], EmploymentType, Location, Active, CompanyID, AgencyID, ContactID, SourceID)
@@ -685,6 +714,9 @@ PRINT 'Lead 5'
 
 INSERT Activities (LeadID,ActivityDate ,ActivityType, ActivityDetails, Complete)
 VALUES (1, '12-01-2017','Inquiry', NULL, 1)
+;
+INSERT Activities (LeadID,ActivityDate ,ActivityType, ActivityDetails, Complete)
+VALUES (1, '12-03-2017','Follow-up', NULL, 1)
 ;
 INSERT Activities (LeadID, ActivityType, ActivityDetails, Complete)
 VALUES (2, 'Inquiry', NULL, 1)
@@ -698,10 +730,13 @@ VALUES (4, 'Inquiry', NULL, 1)
 INSERT Activities (LeadID, ActivityType, ActivityDetails, Complete)
 VALUES (5, 'Inquiry', NULL, 1)
 ;
-INSERT Activities (LeadID,ActivityDate ,ActivityType, ActivityDetails, Complete)
-VALUES (1, '12-03-2017','Follow-up', NULL, 1)
+
 GO
 ;
+
+
+
+----TESTS
 
 --INSERT Leads (RecordDate, JobTitle, SourceID)
 --VALUES ('01-01-2001', 'AAAAA', 6)
