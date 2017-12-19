@@ -1,35 +1,45 @@
 CREATE PROC sp_PrimeGen
 (	
-	 @Limit INT = ''
-	
+	 @Limit INT = '',
+	@Counter INT = 2
 )
 AS
 BEGIN
-	DECLARE @Counter INT = 2
+	DECLARE @Divider INT = 2
 	DECLARE @Prime BIT = 1
-	WHILE @Limit > @Counter 
-	BEGIN	
-		IF  @Limit % @Counter = 0
-		BEGIN
-			SET @Prime = 0
-			BREAK
-		END
+	WHILE @Limit >= @Counter
+		BEGIN	
+			IF @Divider < (@Counter / 2)
+				BEGIN
+					IF  (@Counter % @Divider <> 0)
+						BEGIN 
+							SET @Prime = 0
+							
+						END
+							 SET @Divider = @Divider + 1
+				END
 		
-		SET @Counter = @Counter + 1
-	END
 			
-			
+		
+		
+		
+		
+
+
 	IF @Prime <> 0
 	BEGIN
 		PRINT @Counter
 	END
-
+	 
+	 SET @Counter = @Counter + 1
+		
+		END
 END
+GO
 
 
 
-
-EXEC sp_PrimeGen  @Limit = 10
+EXEC sp_PrimeGen 10
 
 
 
@@ -38,11 +48,18 @@ DROP PROC sp_PrimeGen
 GO
 
 
-
---DECLARE @TESTVALUE BIGINT = 233
+--CREATE PROC sp_PrimeGen
+--(	
+--	 @Limit INT = ''
+	
+--)
+--AS
+--BEGIN
+--DECLARE @TESTVALUE BIGINT = 1
 --DECLARE @DIVISOR BIGINT = 2
 --DECLARE @PRIME BIT = 1
-
+----WHILE @TESTVALUE < @Limit
+--BEGIN
 --WHILE @DIVISOR < (@TESTVALUE / 2)
 --BEGIN
 --	IF (@TESTVALUE % @DIVISOR = 0)  -- If the remainder of the two divided (modulus) is 0.
@@ -53,11 +70,12 @@ GO
 --	END
 --	SET @DIVISOR = @DIVISOR + 1
 --END	
-
+--END
 --IF @PRIME <> 0
 --	PRINT CAST(@TESTVALUE AS VARCHAR(10)) + ' is a prime number.'
 
-
+--END
+--GO
 
 
 
@@ -76,3 +94,28 @@ GO
 --end
 
 --select * from prime order by 1
+
+
+
+
+
+--CREATE  proc sp_PrimeGen
+--@no int  
+--as   
+--	declare @counter int  
+--	set @counter =2  
+--		begin  
+--		while(@counter)<@no  
+-- begin  
+-- if(@no%@counter=0)  
+--  begin  
+--  select 'Not prime'  
+--  return  
+--  end  
+--  set @counter=@counter+1  
+-- end  
+-- select 'prime'  
+-- return  
+--end  
+
+--exec prime 10 
