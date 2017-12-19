@@ -9,12 +9,12 @@ BEGIN
 	DECLARE @Prime BIT = 1
 	WHILE @Limit >= @Counter
 		BEGIN	
-			IF @Divider < (@Counter / 2)
+			WHILE @Divider <= (@Counter / 2)
 				BEGIN
-					IF  (@Counter % @Divider <> 0)
+					IF  (@Counter % @Divider = 0)
 						BEGIN 
 							SET @Prime = 0
-							
+							BREAK
 						END
 							 SET @Divider = @Divider + 1
 				END
@@ -32,6 +32,7 @@ BEGIN
 	END
 	 
 	 SET @Counter = @Counter + 1
+	 SET @Prime = 1
 		
 		END
 END
