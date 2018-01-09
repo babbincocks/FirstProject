@@ -2899,19 +2899,51 @@ RETURNS BIT
 		RETURN @Price
 	END
 
+	GO
+
 CREATE PROC sp_PubActivity
 (
-@Pub INT = ''
-@BeginDate DATE = ''
+@PublicationID INT = '',
+@BeginDate DATE = '',
 @EndDate DATE = ''
 )
 AS
 BEGIN
+	DECLARE @PubName VARCHAR(80) = (SELECT PubName FROM Publications WHERE PubID = @PublicationID)
+	
+	IF (SELECT COUNT(*) FROM PubTracking T
+		INNER JOIN TrackingDetails D
+		ON D.TrackID = T.TrackID
+		WHERE OutDate >= @BeginDate AND OutDate <= @EndDate AND @PublicationID = D.PubID) = 0
+		PRINT '"' + @PubName + '"' + ' was not checked out at all within that period of time.'
+		ELSE BEGIN
+	
+	DECLARE @Result VARCHAR(15)
+	DECLARE Curs CURSOR FOR 
+		SELECT OutDate 
+		FROM PubTracking T
+		INNER JOIN TrackingDetails D
+		ON D.TrackID = T.TrackID
+		WHERE OutDate >= @BeginDate AND OutDate <= @EndDate AND @PublicationID = D.PubID
+	
+	
+	PRINT 'From ' + CAST(@BeginDate AS VARCHAR(10)) + ' to ' + CAST(@EndDate AS VARCHAR(10)) + ', '
+	+ '"' + @PubName + '"' + ' was checked out on the following dates:'
+	PRINT CHAR(10)
 
+	OPEN Curs
 
+	FETCH NEXT FROM Curs INTO @Result
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+	PRINT @Result
+	PRINT CHAR(10)
+	FETCH NEXT FROM Curs INTO @Result
+	END
 
-
-
+	CLOSE CURS
+	DEALLOCATE CURS
+	END
 
 END
 
@@ -2919,3 +2951,7 @@ END
 	--SELECT dbo.fnPubCost(16)
 
 	--SELECT dbo.fnCheckOutBoolean(189)
+
+	EXEC sp_PubActivity 84, '9-20-2017', '10-20-2017'
+
+	
