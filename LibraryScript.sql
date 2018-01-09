@@ -2887,3 +2887,35 @@ RETURNS BIT
 				RETURN @Out
 	END
 	GO
+
+	CREATE FUNCTION [dbo].[fnPubCost]
+	(
+	@CheckedPub AS INT
+	)
+	RETURNS MONEY
+	AS
+	BEGIN
+		DECLARE @Price MONEY = (SELECT UnitPrice FROM PubInventory WHERE PubID = @CheckedPub)
+		RETURN @Price
+	END
+
+CREATE PROC sp_PubActivity
+(
+@Pub INT = ''
+@BeginDate DATE = ''
+@EndDate DATE = ''
+)
+AS
+BEGIN
+
+
+
+
+
+
+END
+
+
+	--SELECT dbo.fnPubCost(16)
+
+	--SELECT dbo.fnCheckOutBoolean(189)
