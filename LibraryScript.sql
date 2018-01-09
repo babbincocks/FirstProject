@@ -8,7 +8,26 @@ CREATE DATABASE LibraryTest
 
 GO
 
+IF (SELECT COUNT(*) FROM master.dbo.syslogins WHERE Name = 'BurgerBoy') > 0
+BEGIN
+
+DROP LOGIN BurgerBoy
+
+END
+
+CREATE LOGIN BurgerBoy WITH PASSWORD = 'Jerma985'
+
+
 USE LibraryTest
+
+CREATE USER BurgerBoy FOR LOGIN BurgerBoy
+
+ALTER ROLE db_datareader ADD MEMBER BurgerBoy
+GO
+
+ALTER ROLE db_datawriter ADD MEMBER BurgerBoy
+GO
+
 
 CREATE TABLE Person 
 (	PersonID INT NOT NULL IDENTITY(1,1),
@@ -2847,3 +2866,24 @@ INSERT INTO Fees (TrackID, PubID, CustID, Overdue, Damage, CompAmount, CompDue, 
 INSERT INTO Fees (TrackID, PubID, CustID, Overdue, Damage, CompAmount, CompDue, CompPaid, ModifiedDate, ModifiedBy) VALUES ( 29, 2, 5, 1, 0, 5.50, '11-08-2017', 5.50, GETDATE(), ORIGINAL_LOGIN())
 INSERT INTO Fees (TrackID, PubID, CustID, Overdue, Damage, CompAmount, CompDue, CompPaid, ModifiedDate, ModifiedBy) VALUES ( 29, 112, 5, 1, 1, 22.60, '11-08-2017', 14.50, GETDATE(), ORIGINAL_LOGIN())
 
+GO
+CREATE FUNCTION [dbo].[fnCheckOutBoolean]
+(
+	@CheckedPub AS INT
+)
+RETURNS BIT
+	AS
+	BEGIN
+		DECLARE @Out BIT = 0
+
+		 IF (SELECT COUNT(*) 
+					FROM TrackingDetails T 
+					INNER JOIN PubTracking PT 
+					ON PT.TrackID = T.TrackID 
+					WHERE PT.InDate IS NULL AND T.PubID = @CheckedPub) >= 1 
+					SET @Out = 1
+		
+
+				RETURN @Out
+	END
+	GO
