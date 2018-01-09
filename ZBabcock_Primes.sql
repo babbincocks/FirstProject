@@ -8,43 +8,43 @@ BEGIN
 	DECLARE @Divider INT = 2
 	DECLARE @Prime BIT = 1
 	WHILE @Limit >= @Counter
-		BEGIN	
-			WHILE @Divider <= (@Counter / 2)
+		BEGIN
+			
+			WHILE @Divider <= (sqrt(@Counter))
 				BEGIN
 					IF  (@Counter % @Divider = 0)
 						BEGIN 
 							SET @Prime = 0
 							BREAK
 						END
-							 SET @Divider = @Divider + 1
+						ELSE	 SET @Divider = @Divider + 1 
+								
+								
+						
 				END
 		
 			
 		
-		
-		
-		
-
 
 	IF @Prime <> 0
 	BEGIN
 		PRINT @Counter
 	END
 	 
-	 SET @Counter = @Counter + 1
-	 SET @Prime = 1
-		
+	SET @Counter = @Counter + 1
+	SET @Prime = 1
+	SET @Divider = 2	
 		END
 END
 GO
 
 
 
-EXEC sp_PrimeGen 10
+EXEC sp_PrimeGen 256
 
 
 
-DROP PROC sp_PrimeGen
+--DROP PROC sp_PrimeGen
 
 GO
 
