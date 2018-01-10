@@ -2,6 +2,52 @@ USE AdventureWorks2012
 
 GO
 
+IF (SELECT COUNT(*) 
+	FROM INFORMATION_SCHEMA.ROUTINES 
+	WHERE ROUTINE_TYPE = 'FUNCTION' 
+	AND ROUTINE_CATALOG = 'AdventureWorks2012' 
+	AND ROUTINE_NAME = 'fnCCExpire') >= 1
+BEGIN
+	DROP FUNCTION dbo.fnCCExpire
+END
+
+IF (SELECT COUNT(*) 
+	FROM INFORMATION_SCHEMA.ROUTINES 
+	WHERE ROUTINE_TYPE = 'FUNCTION' 
+	AND ROUTINE_CATALOG = 'AdventureWorks2012' 
+	AND ROUTINE_NAME = 'fnProvinceTax') >= 1
+BEGIN
+	DROP FUNCTION dbo.fnProvinceTax
+END
+
+IF (SELECT COUNT(*) 
+	FROM INFORMATION_SCHEMA.ROUTINES 
+	WHERE ROUTINE_TYPE = 'FUNCTION' 
+	AND ROUTINE_CATALOG = 'AdventureWorks2012' 
+	AND ROUTINE_NAME = 'fnInchToCentimeter') >= 1
+BEGIN
+	DROP FUNCTION dbo.fnInchToCentimeter
+END
+
+IF (SELECT COUNT(*) 
+	FROM INFORMATION_SCHEMA.ROUTINES 
+	WHERE ROUTINE_TYPE = 'FUNCTION' 
+	AND ROUTINE_CATALOG = 'AdventureWorks2012' 
+	AND ROUTINE_NAME = 'fnGallontoLiter') >= 1
+BEGIN
+	DROP FUNCTION dbo.fnGallontoLiter
+END
+
+IF (SELECT COUNT(*) 
+	FROM INFORMATION_SCHEMA.ROUTINES 
+	WHERE ROUTINE_TYPE = 'FUNCTION' 
+	AND ROUTINE_CATALOG = 'AdventureWorks2012' 
+	AND ROUTINE_NAME = 'fnPoundstoKilograms') >= 1
+BEGIN
+	DROP FUNCTION dbo.fnPoundstoKilograms
+END
+GO
+
 CREATE FUNCTION [dbo].[fnCCExpire]
 (
 @CCNumber AS NVARCHAR(25)
@@ -93,7 +139,7 @@ RETURNS DECIMAL(20,5)
 AS
 BEGIN
 	DECLARE @Liter DECIMAL(20, 10) = (@Gallon * 3.78541)
-	
+	SET @Liter = ROUND(@Liter, 5, 0)
 	RETURN @Liter
 
 END
@@ -105,3 +151,27 @@ SELECT dbo.fnGallontoLiter(10)
 SELECT dbo.fnGallontoLiter(47)
 SELECT dbo.fnGallontoLiter(13.77777)
 SELECT dbo.fnGallontoLiter(51.580432)
+
+GO
+
+CREATE FUNCTION [dbo].[fnPoundstoKilograms]
+(
+@Pounds DECIMAL(20,10)
+)
+RETURNS DECIMAL(20,8)
+AS BEGIN
+
+DECLARE @Kilos DECIMAL(20, 10) = (@Pounds * 0.453592)
+	SET @Kilos = ROUND(@Kilos, 8, 0)
+	RETURN @Kilos
+
+
+
+END
+GO
+
+SELECT dbo.fnPoundstoKilograms(2)
+SELECT dbo.fnPoundstoKilograms(27.552254)
+SELECT dbo.fnPoundstoKilograms(27.552255)
+SELECT dbo.fnPoundstoKilograms(78)
+SELECT dbo.fnPoundstoKilograms(3002)
