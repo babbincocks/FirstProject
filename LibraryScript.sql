@@ -108,7 +108,7 @@ CREATE TABLE Publications
 	CONSTRAINT PK_Publications_PubID PRIMARY KEY (PubID),
 	CONSTRAINT FK_Publications_DeweyDecimal FOREIGN KEY (DDNumber) REFERENCES DeweyDecimal(DDNumber),
 	CONSTRAINT FK_Publications_Person FOREIGN KEY (AuthorID) REFERENCES Person(PersonID),
-	CONSTRAINT FK_Publications_Media FOREIGN KEY (MediaID) REFERENCES Media(MediaID)
+	CONSTRAINT FK_Publications_Media FOREIGN KEY (MediaID) REFERENCES Media(MediaID),
 );
 CREATE INDEX ind_PubName ON Publications(PubName)
 
@@ -357,6 +357,21 @@ BEGIN
 		WHERE  PubID = @insert
 END
 GO
+
+CREATE TRIGGER trg_DeweyCheck
+ON Publications
+AFTER INSERT, UPDATE
+AS
+BEGIN
+	
+	IF MediaID NOT IN (1, 4) AND DDNumber IS NOT NULL
+	BEGIN
+		
+		PRINT ''
+		ROLLBACK TRANSACTION
+	
+	END
+END
 ;
 CREATE TRIGGER trg_ModPubInvRecord 
 ON PubInventory
@@ -513,25 +528,106 @@ BEGIN
 		WHERE  FeeID = @insert
 END
 GO
+
+CREATE FUNCTION [dbo].[fnCheckOutBoolean]
+(
+	@CheckedPub AS INT
+)
+RETURNS BIT
+	AS
+	BEGIN
+		DECLARE @Out BIT = 0
+
+		 IF (SELECT COUNT(*) 
+					FROM TrackingDetails T 
+					INNER JOIN PubTracking PT 
+					ON PT.TrackID = T.TrackID 
+					WHERE PT.InDate IS NULL AND T.PubID = @CheckedPub) >= 1 
+					SET @Out = 1
+		
+
+				RETURN @Out
+	END
+	GO
+
+	CREATE FUNCTION [dbo].[fnPubCost]
+	(
+	@CheckedPub AS INT
+	)
+	RETURNS MONEY
+	AS
+	BEGIN
+		DECLARE @Price MONEY = (SELECT UnitPrice FROM PubInventory WHERE PubID = @CheckedPub)
+		RETURN @Price
+	END
+
+	GO
+
+CREATE PROC sp_PubActivity
+(
+@PublicationID INT = '',
+@BeginDate DATE = '',
+@EndDate DATE = ''
+)
+AS
+BEGIN
+	DECLARE @PubName VARCHAR(80) = (SELECT PubName FROM Publications WHERE PubID = @PublicationID)
+	
+	IF (SELECT COUNT(*) FROM PubTracking T
+		INNER JOIN TrackingDetails D
+		ON D.TrackID = T.TrackID
+		WHERE OutDate >= @BeginDate AND OutDate <= @EndDate AND @PublicationID = D.PubID) = 0
+		PRINT '"' + @PubName + '"' + ' was not checked out at all within that period of time.'
+		ELSE BEGIN
+	
+	DECLARE @Result VARCHAR(15)
+	DECLARE Curs CURSOR FOR 
+		SELECT OutDate 
+		FROM PubTracking T
+		INNER JOIN TrackingDetails D
+		ON D.TrackID = T.TrackID
+		WHERE OutDate >= @BeginDate AND OutDate <= @EndDate AND @PublicationID = D.PubID
+	
+	
+	PRINT 'From ' + CAST(@BeginDate AS VARCHAR(10)) + ' to ' + CAST(@EndDate AS VARCHAR(10)) + ', '
+	+ '"' + @PubName + '"' + ' was checked out on the following dates:'
+	PRINT CHAR(10)
+
+	OPEN Curs
+
+	FETCH NEXT FROM Curs INTO @Result
+	WHILE @@FETCH_STATUS = 0
+	BEGIN
+	PRINT @Result
+	FETCH NEXT FROM Curs INTO @Result
+	END
+
+	CLOSE CURS
+	DEALLOCATE CURS
+	END
+
+END
+
+
 ;
 EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [AddressWhole];
 EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all information on customers.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Customers];
-EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [DeweyDecimal];
-EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [EmailAddress];
-EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Employees];
-EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Fees];
-EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [LibraryCard];
-EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Media];
-EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [OrderDetails];
-EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Orders];
-EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Person];
-EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [PersonAddress];
-EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Phone];
-EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [PubInventory];
-EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Publications];
-EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [PubTracking];
-EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Suppliers];
-EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [TrackingDetails];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing the Dewey Decimal System.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [DeweyDecimal];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all email addresses of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [EmailAddress];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing information on employees that only pertain to employees.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Employees];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing information on late and/or damaged publications, and whether a debt is still owed.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Fees];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing information on library cards.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [LibraryCard];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Reference table for the different types of media.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Media];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing information on stock received on orders.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [OrderDetails];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing information on payments and dates relevant to orders.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Orders];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing the names of all entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Person];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Intermediary table between the Person table and the Address table.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [PersonAddress];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all phone numbers of relevant entities.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Phone];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all stock information on publications.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [PubInventory];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all relevant information to each publication in the library.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Publications];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing broader information on rentals of publications.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [PubTracking];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing all information on suppliers of publications to the library.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [Suppliers];
+EXECUTE sys.sp_addextendedproperty @name = N'MS_Description', @value = N'Table containing finer details on rentals of publications.', @level0type = N'SCHEMA', @level0name = [dbo], @level1type = N'TABLE', @level1name = [TrackingDetails];
 GO
 
 
@@ -2867,91 +2963,32 @@ INSERT INTO Fees (TrackID, PubID, CustID, Overdue, Damage, CompAmount, CompDue, 
 INSERT INTO Fees (TrackID, PubID, CustID, Overdue, Damage, CompAmount, CompDue, CompPaid, ModifiedDate, ModifiedBy) VALUES ( 29, 112, 5, 1, 1, 22.60, '11-08-2017', 14.50, GETDATE(), ORIGINAL_LOGIN())
 
 GO
-CREATE FUNCTION [dbo].[fnCheckOutBoolean]
-(
-	@CheckedPub AS INT
-)
-RETURNS BIT
-	AS
-	BEGIN
-		DECLARE @Out BIT = 0
 
-		 IF (SELECT COUNT(*) 
-					FROM TrackingDetails T 
-					INNER JOIN PubTracking PT 
-					ON PT.TrackID = T.TrackID 
-					WHERE PT.InDate IS NULL AND T.PubID = @CheckedPub) >= 1 
-					SET @Out = 1
-		
 
-				RETURN @Out
-	END
-	GO
+	--SELECT dbo.fnPubCost(ID)
 
-	CREATE FUNCTION [dbo].[fnPubCost]
-	(
-	@CheckedPub AS INT
-	)
-	RETURNS MONEY
-	AS
-	BEGIN
-		DECLARE @Price MONEY = (SELECT UnitPrice FROM PubInventory WHERE PubID = @CheckedPub)
-		RETURN @Price
-	END
+	--SELECT dbo.fnCheckOutBoolean(ID)
+
+	--EXEC sp_PubActivity 83, '01-01-2017', '01-09-2018'
+
 
 	GO
 
-CREATE PROC sp_PubActivity
+CREATE PROCEDURE sp_PubInfo
 (
-@PublicationID INT = '',
-@BeginDate DATE = '',
-@EndDate DATE = ''
+@IDofPub INT = ''
 )
 AS
 BEGIN
-	DECLARE @PubName VARCHAR(80) = (SELECT PubName FROM Publications WHERE PubID = @PublicationID)
 	
-	IF (SELECT COUNT(*) FROM PubTracking T
-		INNER JOIN TrackingDetails D
-		ON D.TrackID = T.TrackID
-		WHERE OutDate >= @BeginDate AND OutDate <= @EndDate AND @PublicationID = D.PubID) = 0
-		PRINT '"' + @PubName + '"' + ' was not checked out at all within that period of time.'
-		ELSE BEGIN
-	
-	DECLARE @Result VARCHAR(15)
-	DECLARE Curs CURSOR FOR 
-		SELECT OutDate 
-		FROM PubTracking T
-		INNER JOIN TrackingDetails D
-		ON D.TrackID = T.TrackID
-		WHERE OutDate >= @BeginDate AND OutDate <= @EndDate AND @PublicationID = D.PubID
-	
-	
-	PRINT 'From ' + CAST(@BeginDate AS VARCHAR(10)) + ' to ' + CAST(@EndDate AS VARCHAR(10)) + ', '
-	+ '"' + @PubName + '"' + ' was checked out on the following dates:'
-	PRINT CHAR(10)
-
-	OPEN Curs
-
-	FETCH NEXT FROM Curs INTO @Result
-	WHILE @@FETCH_STATUS = 0
-	BEGIN
-	PRINT @Result
-	PRINT CHAR(10)
-	FETCH NEXT FROM Curs INTO @Result
-	END
-
-	CLOSE CURS
-	DEALLOCATE CURS
-	END
+	SELECT P.PubID, P.PubName, M.Medium, D.*
+	FROM Publications P
+	LEFT JOIN DeweyDecimal D 
+	ON D.DDNumber = P.DDNumber
+	LEFT JOIN Media M
+	ON M.MediaID = P.MediaID
+	WHERE P.PubID = @IDofPub
 
 END
 
-
-	--SELECT dbo.fnPubCost(16)
-
-	--SELECT dbo.fnCheckOutBoolean(189)
-
-	EXEC sp_PubActivity 84, '9-20-2017', '10-20-2017'
-
-	
+EXEC sp_PubInfo 
