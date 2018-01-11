@@ -64,13 +64,11 @@ BEGIN
 	RETURN @ExpDate
 END
 GO
-
-SELECT dbo.fnCCExpire (33332664695310)
-SELECT dbo.fnCCExpire (55552127249722)
-SELECT dbo.fnCCExpire (77774915718248)
-SELECT dbo.fnCCExpire (11119905436490)
-SELECT dbo.fnCCExpire (33333594431481)
-
+/*
+SELECT		CardType, CardNumber, ExpMonth, ExpYear, 
+			dbo.fnCCExpire(CardNumber)
+FROM		Sales.CreditCard
+*/
 GO
 
 
@@ -89,21 +87,18 @@ BEGIN
 	SET @Rate = (SELECT TaxRate FROM Sales.SalesTaxRate WHERE StateProvinceID = @Province AND TaxType = @Tax)
 
 	IF @Rate IS NULL
-		BEGIN
 		SET @Rate = 0
-		END
 
 	RETURN @Rate
 END
 
 GO
-
-SELECT [dbo].[fnProvinceTax](1, 1)
-SELECT [dbo].[fnProvinceTax](63, 2)
-SELECT [dbo].[fnProvinceTax](57, 4)
-SELECT [dbo].[fnProvinceTax](14, 2)
-SELECT [dbo].[fnProvinceTax](35, 1)
-
+/*
+SELECT		TR.Name, TR.StateProvinceID, TR.TaxType,
+			dbo.fnProvinceTax(TR.StateProvinceID, TR.TaxType) FunctionRate, 
+			TR.TaxRate 
+FROM		Sales.SalesTaxRate TR
+*/
 GO
 
 
@@ -122,13 +117,19 @@ BEGIN
 END
 GO
 
+/*
+DECLARE @COUNTER INT = 1
+DECLARE @TESTVALUE DECIMAL(10,1)
 
-SELECT [dbo].[fnInchToCentimeter](1) 
-SELECT [dbo].[fnInchToCentimeter](19) 
-SELECT [dbo].[fnInchToCentimeter](4) 
-SELECT [dbo].[fnInchToCentimeter](200) 
-SELECT [dbo].[fnInchToCentimeter](42.56) 
+WHILE @COUNTER <= 100
+BEGIN
+	SET @TESTVALUE = (cast( rand()*10000 as decimal(10,1))*0.1)
 
+	SELECT @TESTVALUE, dbo.fnInchToCentimeter(@TESTVALUE)
+
+	SET @COUNTER = @COUNTER + 1
+END 
+*/
 GO
 
 CREATE FUNCTION [dbo].[fnGallontoLiter]
@@ -145,13 +146,19 @@ BEGIN
 END
 GO
 
+/*
+DECLARE @COUNTER INT = 1
+DECLARE @TESTVALUE DECIMAL(10,1)
 
-SELECT dbo.fnGallontoLiter(2)
-SELECT dbo.fnGallontoLiter(10)
-SELECT dbo.fnGallontoLiter(47)
-SELECT dbo.fnGallontoLiter(13.77777)
-SELECT dbo.fnGallontoLiter(51.580432)
+WHILE @COUNTER <= 100
+BEGIN
+	SET @TESTVALUE = (cast( rand()*10000 as decimal(10,1))*0.1)
 
+	SELECT @TESTVALUE, dbo.fnGallontoLiter(@TESTVALUE)
+
+	SET @COUNTER = @COUNTER + 1
+END 
+*/
 GO
 
 CREATE FUNCTION [dbo].[fnPoundstoKilograms]
@@ -169,9 +176,16 @@ DECLARE @Kilos DECIMAL(20, 10) = (@Pounds * 0.453592)
 
 END
 GO
+/*
+DECLARE @COUNTER INT = 1
+DECLARE @TESTVALUE DECIMAL(10,1)
 
-SELECT dbo.fnPoundstoKilograms(2)
-SELECT dbo.fnPoundstoKilograms(27.552254)
-SELECT dbo.fnPoundstoKilograms(27.552255)
-SELECT dbo.fnPoundstoKilograms(78)
-SELECT dbo.fnPoundstoKilograms(3002)
+WHILE @COUNTER <= 100
+BEGIN
+	SET @TESTVALUE = (cast( rand()*10000 as decimal(10,1))*0.1)
+
+	SELECT @TESTVALUE, dbo.fnPoundstoKilograms(@TESTVALUE)
+
+	SET @COUNTER = @COUNTER + 1
+END 
+*/
