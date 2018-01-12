@@ -34,7 +34,9 @@ END
 CLOSE RandStatus
 DEALLOCATE RandStatus
 
+
 GO
+
 
 CREATE PROC sp_UpdateStatusRest
 AS
@@ -53,44 +55,21 @@ BEGIN
 
 			SET @Counter = @Counter + 1
 		END
-
-	
-
-	--SELECT t.name, p.rows FROM sys.partitions P INNER JOIN sys.tables T ON T.object_id = P.object_id
 	
 END
+--Or just use this
 
+--UPDATE Sales.SalesOrderHeader
+--SET [Status] = ABS(CHECKSUM(NEWID() )% 3) + 1
+--WHERE [Status] = 5
 GO
 
 
 EXEC sp_UpdateStatusRest
-	DECLARE @i INT = 0
-UPDATE Sales.SalesOrderHeader SET [Status] = @i:
-
---UPDATE Sales.SalesOrderHeader SET [Status] = ( RAND( ) * ( SELECT countID
---FROM (
---SELECT MAX(random_uid) + COUNT(1) + 1 countID
---FROM table1) AS t3)
---) + ( 
---SELECT maxID
---FROM (SELECT MAX( random_uid ) maxID FROM table1) AS t)
 
 
 
---order by SalesOrderID OFFSET 1000 ROWS
-
-/*
-DROP PROC sp_UpdateStatusRest
-
-UPDATE Sales.SalesOrderHeader
-		SET [Status] = 5
-
-DISABLE TRIGGER [Sales].[uSalesOrderHeader] ON [Sales].[SalesOrderHeader] 
-
-ENABLE TRIGGER [Sales].[uSalesOrderHeader] ON [Sales].[SalesOrderHeader] 
-*/
-
-SELECT * FROM Production.Product
+GO
 
 CREATE FUNCTION fn_ProductIDQuant
 (
@@ -115,7 +94,7 @@ BEGIN
 END
 GO
 
-SELECT dbo.fn_ProductIDQuant(2)
+--SELECT dbo.fn_ProductIDQuant(2)
 
 
 GO
@@ -143,9 +122,8 @@ BEGIN
 END
 GO
 
-SELECT dbo.fn_ProductNumQuant('BA-8327')
+--SELECT dbo.fn_ProductNumQuant('BA-8327')
 
-SELECT * FROM Sales.SalesOrderHeader WHERE BillToAddressID IS NULL OR ShipToAddressID IS NULL
 
 GO
 
@@ -173,20 +151,3 @@ END
 GO
 
 EXEC sp_Shipoff
-
---UPDATE Sales.SalesOrderHeader
---SET CreditCardApprovalCode = NULL
---WHERE SalesOrderID = 43665
-
---UPDATE Sales.SalesOrderHeader
---SET CreditCardApprovalCode = '105041Vi84182'
---WHERE SalesOrderID = 43659
-
-
-
-SELECT * FROM Sales.SalesOrderHeader
-
---UPDATE Sales.SalesOrderHeader
---SET [Status] = ABS(CHECKSUM(NEWID() )% 3) + 1
-
---SELECT * FROM Sales.SalesOrderHeader
