@@ -19,6 +19,7 @@ MiddleName VARCHAR(25) NULL,
 CreateDate DATE NOT NULL
 CONSTRAINT PK_ClientID PRIMARY KEY (ClientID)
 )
+;
 
 CREATE TABLE ClientContacts
 (
@@ -37,4 +38,45 @@ CONSTRAINT PK_AddressID PRIMARY KEY (AddressID),
 CONSTRAINT FK_ClientContacts_Clients FOREIGN KEY (ClientID) REFERENCES Clients(ClientID),
 CONSTRAINT CK_AddressTypes CHECK (AddressType IN (1, 2))
 )
+;
 
+CREATE TABLE AnimalTypeReference
+(
+AnimalTypeID INT IDENTITY(1,1),
+Species VARCHAR(35) NOT NULL,
+Breed VARCHAR(35) NOT NULL
+CONSTRAINT PK_AnimalTypeID PRIMARY KEY (AnimalTypeID)
+)
+;
+
+CREATE TABLE Patients
+(
+PatientID INT IDENTITY(1,1),
+ClientID INT NOT NULL,
+PatName VARCHAR(35) NOT NULL,
+AnimalType INT NOT NULL,
+Color VARCHAR(25) NULL,
+Gender VARCHAR(2) NOT NULL,
+BirthYear VARCHAR(4) NULL,
+[Weight] DECIMAL(2) NOT NULL,
+[Description] VARCHAR(1024) NULL,
+GeneralNotes VARCHAR(2048) NOT NULL,
+Chipped BIT NOT NULL,
+RabiesVacc DATETIME NULL
+CONSTRAINT PK_PatientID PRIMARY KEY(PatientID),
+CONSTRAINT FK_Patients_Clients FOREIGN KEY (ClientID) REFERENCES Clients(ClientID),
+CONSTRAINT FK_Patients_AnimalType FOREIGN KEY (AnimalType) REFERENCES AnimalTypeReference(AnimalTypeID)
+)
+;
+
+CREATE TABLE Employees
+(
+EmployeeID INT IDENTITY(1,1),
+LastName VARCHAR(25) NOT NULL,
+FirstName VARCHAR(25) NOT NULL,
+MiddleName VARCHAR(25) NOT NULL,
+HireDate DATE NOT NULL,
+Title VARCHAR(50) NOT NULL
+CONSTRAINT PK_EmployeeID PRIMARY KEY (EmployeeID)
+)
+;
