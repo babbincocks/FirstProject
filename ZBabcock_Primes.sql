@@ -40,7 +40,7 @@ GO
 
 
 
-EXEC sp_PrimeGen 256
+EXEC sp_PrimeGen 152000
 
 
 
