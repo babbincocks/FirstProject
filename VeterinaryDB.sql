@@ -1,0 +1,40 @@
+USE master
+IF (SELECT COUNT(*) FROM sys.databases WHERE name = 'VeterinaryDB') > 0
+BEGIN
+DROP DATABASE VeterinaryDB
+END
+
+CREATE DATABASE VeterinaryDB
+
+GO
+
+USE VeterinaryDB
+
+CREATE TABLE Clients
+(
+ClientID INT IDENTITY(1,1),
+FirstName VARCHAR(25) NOT NULL,
+LastName VARCHAR(25) NOT NULL,
+MiddleName VARCHAR(25) NULL,
+CreateDate DATE NOT NULL
+CONSTRAINT PK_ClientID PRIMARY KEY (ClientID)
+)
+
+CREATE TABLE ClientContacts
+(
+AddressID INT IDENTITY(1,1),
+ClientID INT NOT NULL,
+AddressType INT NOT NULL,
+AddressLine1 VARCHAR(50) NOT NULL,
+AddressLine2 VARCHAR(50) NOT NULL,
+City VARCHAR(35) NOT NULL,
+StateProvince VARCHAR(25) NOT NULL,
+PostalCode VARCHAR(15) NOT NULL,
+Phone VARCHAR(15) NOT NULL,
+AltPhone VARCHAR(15) NOT NULL,
+Email VARCHAR(35) NOT NULL
+CONSTRAINT PK_AddressID PRIMARY KEY (AddressID),
+CONSTRAINT FK_ClientContacts_Clients FOREIGN KEY (ClientID) REFERENCES Clients(ClientID),
+CONSTRAINT CK_AddressTypes CHECK (AddressType IN (1, 2))
+)
+
