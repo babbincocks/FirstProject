@@ -1,6 +1,8 @@
 USE AdventureWorks2012
 GO
 
+--A function that uses the LIKE operator to pull Product names that contain a specific combination of characters
+
 CREATE FUNCTION dbo.fnProductNameSearch
 (
 @String VARCHAR(40)
@@ -14,7 +16,8 @@ RETURN
 
 GO
 
-
+-- A function that accepts an integer for a parameter and returns that number of the most recent orders in 
+-- descending order by order date.
 
 CREATE FUNCTION dbo.fnRecentOrders
 (
@@ -31,6 +34,9 @@ RETURN
 
 GO
 
+--A function that accepts a string of numbers (i.e. '638') and then finds all the people with phone numbers 
+--containing that number combination.
+
 CREATE FUNCTION dbo.fnPhoneSearch
 (
 @NumberString VARCHAR(15)
@@ -46,6 +52,8 @@ RETURN
 
 GO
 
+-- A function that accepts a starting number (@StartNumber) and then returns the specified number of prime numbers 
+-- (@PrimeCount) that come after it.
 
 CREATE FUNCTION dbo.fnPrimeCheck
 (
@@ -109,5 +117,5 @@ BEGIN
 END
 GO
 
-SELECT *
-FROM dbo.fnSequentialPrimes(256, 30)
+--SELECT *
+--FROM dbo.fnSequentialPrimes(256, 30)
