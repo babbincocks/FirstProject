@@ -100,7 +100,7 @@ BEGIN
 	DECLARE @Counter INT = 1
 	WHILE @Counter <= @PrimeCount
 	BEGIN
-		IF (SELECT dbo.fnPrimeCheck(@StartNumber)) = 1
+		IF (SELECT dbo.fnPrimeCheck(@StartNumber)) <> 0
 		BEGIN
 			INSERT @Primes 
 			VALUES (@StartNumber)
@@ -118,4 +118,5 @@ END
 GO
 
 --SELECT *
---FROM dbo.fnSequentialPrimes(256, 30)
+--FROM dbo.fnSequentialPrimes(3, 10000)
+
