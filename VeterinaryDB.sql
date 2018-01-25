@@ -6,10 +6,39 @@ END
 
 CREATE DATABASE VeterinaryDB
 
+IF (SELECT COUNT(*) FROM master.dbo.syslogins WHERE Name = 'VetManager') > 0
+BEGIN
+
+DROP LOGIN VetManager
+
+END
+
+IF (SELECT COUNT(*) FROM master.dbo.syslogins WHERE Name = 'VetClerk') > 0
+BEGIN
+
+DROP LOGIN VetClerk
+
+END
+
+CREATE LOGIN VetManager WITH PASSWORD = 'VManager'
+CREATE LOGIN VetClerk WITH PASSWORD = 'VClerk'
+
 GO
 
 USE VeterinaryDB
 
+CREATE USER VetManager FOR LOGIN VetManager
+
+ALTER ROLE db_datareader ADD MEMBER VetManager
+ALTER ROLE db_datawriter ADD MEMBER VetManager
+
+CREATE USER VetClerk FOR LOGIN VetClerk
+
+
+
+
+GO
+;
 CREATE TABLE Clients
 (
 ClientID INT IDENTITY(1,1),
@@ -32,8 +61,8 @@ City VARCHAR(35) NOT NULL,
 StateProvince VARCHAR(25) NOT NULL,
 PostalCode VARCHAR(15) NOT NULL,
 Phone VARCHAR(15) NOT NULL,
-AltPhone VARCHAR(15) NOT NULL,
-Email VARCHAR(35) NOT NULL
+AltPhone VARCHAR(15) NULL,
+Email VARCHAR(35) NULL
 CONSTRAINT PK_AddressID PRIMARY KEY (AddressID),
 CONSTRAINT FK_ClientContacts_Clients FOREIGN KEY (ClientID) REFERENCES Clients(ClientID),
 CONSTRAINT CK_AddressTypes CHECK (AddressType IN (1, 2))
@@ -94,7 +123,7 @@ PostalCode VARCHAR(15) NOT NULL,
 Phone VARCHAR(15) NOT NULL,
 AltPhone VARCHAR(15) NULL,
 Email VARCHAR(50) NULL
-CONSTRAINT PK_AddressID PRIMARY KEY (AddressID),
+CONSTRAINT PK_EmployeeAddressID PRIMARY KEY (AddressID),
 CONSTRAINT FK_EmployeeContact_Employees FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
 )
 
@@ -140,21 +169,35 @@ CONSTRAINT FK_Payments_Billing FOREIGN KEY (BillID) REFERENCES Billing(BillID),
 CONSTRAINT CK_NoFuturePayments CHECK (PaymentDate <= GETDATE())
 )
 
+GO
+
+GRANT SELECT ON AnimalTypeReference TO VetClerk
+GRANT SELECT ON Billing TO VetClerk
+GRANT SELECT ON Clients TO VetClerk
+GRANT SELECT ON Employees TO VetClerk
+GRANT SELECT ON Patients TO VetClerk
+GRANT SELECT ON Payments TO VetClerk
+GRANT SELECT ON Visits TO VetClerk
+
+
+GO
+
 INSERT Clients(FirstName, LastName, MiddleName)
 VALUES ('Franklin','King', NULL), ('Jamie','Michaels', NULL), ('Derek','Tristram','Deckard'),
 ('Susan','Falcone','Nicole'), ('Ulrich','Sapkowski','Andrzej')
 
 INSERT ClientContacts (ClientID, AddressType, AddressLine1, AddressLine2, City, StateProvince, 
 						PostalCode, Phone, AltPhone, Email)
-VALUES (1, 2, '422 Perigrin Lane', 'PO Box 578', 'Atlanta', 'Georgia', '30302', '404-555-1456', '404-888-7423', 'kingtres333@shmoogle.com')
-,(2, 1, '8998 NE 46th Street', NULL, 'Ocala', 'Florida', '34471', '352-367-0005', '207-561-5544', 'horsesofhorsia14@shmoogle.com')
+VALUES (1, 2, '422 Perigrin Lane', 'PO Box 578', 'Atlanta', 'Georgia', '30302', '404-555-1456', NULL, 'kingtres333@shmoogle.com')
+,(2, 1, '8998 NE 46th Street', NULL, 'Ocala', 'Florida', '34471', '352-367-0005', '207-561-5544', NULL)
 ,(3, 1, '2789 SW 12th Avenue', NULL, 'Ocala', 'Florida', '34474', '352-999-2100', '998-555-1420', 'somethingdark01@shmoogle.com')
-,(4, 1, '602 NE 98th Terrace', NULL, 'Gainesville', 'Florida', '32604', '352-782-1341', '898-555-4782', 'susanfalcone14@coldpost.net')
-,(5, 2, '26 Gamle Torv', NULL, 'Slagelse', 'Norway', '4200', '58-11-5566', '58-11-0000', 'bestiltilen@postkasse.de')
+,(4, 1, '602 NE 98th Terrace', NULL, 'Gainesville', 'Florida', '32604', '352-782-1341', NULL, 'susanfalcone14@coldpost.net')
+,(5, 2, '26 Gamle Torv', NULL, 'Slagelse', 'Norway', '4200', '58-11-5566', NULL, 'bestiltilen@postkasse.de')
 
 
 INSERT AnimalTypeReference (Species, Breed)
-VALUES ('Dog', 'German Shepherd'), ('Horse', 'American Quarter'), ('Cat', 'Russian Blue'), ('Cat', 'Himalayan'), ('Cat', 'Sphynx'), ('Dog', 'Pug')
+VALUES ('Dog', 'German Shepherd'), ('Horse', 'American Quarter'), ('Cat', 'Russian Blue'), 
+		('Cat', 'Himalayan'), ('Cat', 'Sphynx'), ('Dog', 'Pug')
 
 INSERT Patients (ClientID, PatName, AnimalType, Color, Gender, BirthYear, [Weight], 
 				[Description], GeneralNotes, Chipped, RabiesVacc)
@@ -162,6 +205,34 @@ VALUES (1, 'Snuffles', 1, 'Black', 'F', '2005', '12.6', NULL, 'Came in with irri
 		(2, 'Mystery', 2, 'White', 'M', '1999', '1080.55', NULL, 'Yearly checkup. Impeccably cared for. No health issues found.', 0, '8-22-2016'),
 		(2, 'Shebana', 2, 'Chestnut', 'F', '1997', '1074.8', NULL, 'Yearly checkup. Impeccably cared for. No health issues found.', 0, '8-22-2016'),
 		(3, 'Andy', 3, 'Grey', 'M', '1999', '11.52', NULL, 'Legs had stopped functioning due to age. Had to be put down.', 1, '4-28-2016'),
-		(4, 'Crookshanks', 4, 'Ginger', 'F', '2004', '11.5', NULL, 'Came in with irritated bowels. Found blockage consisting of hair and cereal. Medication was given to help pass blockage.', 0, '2-17-2016'),
-		(4, 'Kneazie', 5, NULL, 'F', '2007', '5.5', NULL, 'Yearly checkup. A bit underweight. Should be fed more.', 0, '2-17-2016'),
+		(4, 'Crookshanks', 4, 'Ginger', 'F', '2004', '11.5', NULL, 'Yearly checkup. Seems to be mostly fine. Needs help with thick coat.', 0, '10-13-2017'),
+		(4, 'Kneazie', 5, NULL, 'F', '2007', '5.5', NULL, 'Yearly checkup. A bit underweight. Should be fed more.', 0, '10-13-2017'),
 		(5, 'Lodne Dreng', 6, NULL, 'M', '2010', '12', NULL, 'Came in unresponsive. Was able to resuscitate, and made a full recovery. Cause seems to have been carrot lodged in throat.', 1, '1-22-2017')
+
+INSERT Employees (LastName, FirstName, MiddleName, HireDate, Title)
+VALUES ('Richards', 'Riquita', 'Maya', '4-14-2014', 'Desk Receptionist'),
+		('Dawkins', 'Kashawndra', 'Aloray', '4-14-2014', 'Veterinarian'),
+		('Park', 'Michael', 'Trey', '4-14-2014', 'Veterinarian Assistant'),
+		('Pasquello', 'Cory', 'Francis', '4-14-2014', 'Office Manager'),
+		('Hill', 'Nicole', 'Henrietta', '4-14-2014', 'Kennel Assistant'),
+		('Moore', 'Brendan', 'William', '1-25-2015', 'Veterinarian'),
+		('Grant', 'Francine', 'Purna', '2-9-2015', 'Janitor')
+
+INSERT EmployeeContactInfo (EmployeeID, AddressType, AddressLine1, AddressLine2, City, StateProvince, PostalCode, Phone, AltPhone, Email)
+VALUES (1, 1, '1489 NE 45th Lane', 'Apt. #268', 'Ocala', 'Florida', '34472', '352-999-4554', NULL, 'riqui_riqui@coldpost.com'),
+(2, 1, '3801 SE 59th Place', NULL, 'Ocala', 'Florida', '34473', '352-331-1270', NULL, 'motheraether@shmoogle.com'),
+(3, 1, '386 Meadow Vale Lane', NULL, 'Dunnellon', 'Florida', '34432', '352-568-9991', NULL, 'parkway67@coldpost.com'),
+(4, 1, '9325 SE 11th Way', NULL, 'Ocala', 'Florida', '34470', '352-099-5665', NULL, 'cpasquello01@shmoogle.com'),
+(5, 1, '4846 SW 68th Pass', 'Apt. #144', 'Ocala', 'Florida', '34474', '352-890-0000', '207-342-4255', 'nikkinacks11@coldpost.com'),
+(6, 1, '3801 Crest Line Street', NULL, 'Belleview', 'Florida', '34421', '352-771-3095', NULL, 'williamb999@yoohoo.org'),
+(7, 1, '8768 NW 24th Court', NULL, 'Ocala', 'Florida', '34475', '352-983-6662', NULL, 'grantf1991@coldpost.com')
+
+
+--INSERT Visits (StartTime, EndTime, Appointment, DiagnosisCode, ProcedureCode, VisitNotes, PatientID, EmployeeID)
+--VALUES ('', '', , '', '', '', , ,), ('', '', , '', '', '', , ,), ('', '', , '', '', '', , ,),
+--('', '', , '', '', '', , ,), ('', '', , '', '', '', , ,)
+
+--INSERT Billing (BillDate, ClientID, VisitID, Amount)
+--VALUES ('', 1, 1, ''), ('', 2, 2, ''), ('', 3, 3, ''), ('', 4, 4, ''), ('', 5, 5, '')
+
+
