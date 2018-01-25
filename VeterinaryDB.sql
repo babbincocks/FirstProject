@@ -236,3 +236,67 @@ VALUES (1, 1, '1489 NE 45th Lane', 'Apt. #268', 'Ocala', 'Florida', '34472', '35
 --VALUES ('', 1, 1, ''), ('', 2, 2, ''), ('', 3, 3, ''), ('', 4, 4, ''), ('', 5, 5, '')
 
 
+GO
+CREATE PROC sp_SpeciesSearch
+(
+@Species VARCHAR(20)
+
+)
+AS
+BEGIN
+SELECT		ATR.Species [Patient Species], P.PatName [Patient Name], C.FirstName [Client First Name], 
+			C.MiddleName [Client Middle Name], C.LastName [Client Last Name], CC.AddressLine1, 
+			CC.AddressLine2, CC.City, CC.StateProvince, CC.PostalCode, CC.Phone, CC.AltPhone, CC.Email
+FROM		AnimalTypeReference ATR
+INNER JOIN	Patients P
+ON			P.AnimalType = ATR.AnimalTypeID
+INNER JOIN	Clients C
+ON			C.ClientID = P.ClientID
+INNER JOIN	ClientContacts CC
+ON			CC.ClientID = C.ClientID
+WHERE		ATR.Species = @Species
+
+END
+
+
+GO
+
+CREATE PROC sp_BreedSearch
+(
+@Breed VARCHAR(20)
+
+)
+AS
+BEGIN
+SELECT		ATR.Breed [Patient Species], P.PatName [Patient Name], C.FirstName [Client First Name], 
+			C.MiddleName [Client Middle Name], C.LastName [Client Last Name], CC.AddressLine1, 
+			CC.AddressLine2, CC.City, CC.StateProvince, CC.PostalCode, CC.Phone, CC.AltPhone, CC.Email
+FROM		AnimalTypeReference ATR
+INNER JOIN	Patients P
+ON			P.AnimalType = ATR.AnimalTypeID
+INNER JOIN	Clients C
+ON			C.ClientID = P.ClientID
+INNER JOIN	ClientContacts CC
+ON			CC.ClientID = C.ClientID
+WHERE		ATR.Breed = @Breed
+
+END
+
+
+GO
+
+CREATE PROC sp_ClientPayInfo
+(
+@Client INT
+)
+AS
+BEGIN
+SELECT B.ClientID, BillDate [Date Billed], PaymentDate [Date of Payment], CAST(V.EndTime AS DATE) [Date of Visit], B.Amount [Amount Billed], P.Amount [Amount Paid]
+FROM Billing B
+LEFT JOIN Payments P
+ON P.BillID = B.BillID
+INNER JOIN Visits V
+ON V.VisitID = B.VisitID
+WHERE @Client = ClientID
+
+END
