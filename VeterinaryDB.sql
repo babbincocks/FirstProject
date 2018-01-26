@@ -22,7 +22,8 @@ END
 
 CREATE LOGIN VetManager WITH PASSWORD = 'VManager'
 CREATE LOGIN VetClerk WITH PASSWORD = 'VClerk'
-
+ALTER LOGIN VetManager WITH DEFAULT_DATABASE = VeterinaryDB
+ALTER LOGIN VetClerk WITH DEFAULT_DATABASE = VeterinaryDB
 GO
 
 USE VeterinaryDB
@@ -33,6 +34,11 @@ ALTER ROLE db_datareader ADD MEMBER VetManager
 ALTER ROLE db_datawriter ADD MEMBER VetManager
 
 CREATE USER VetClerk FOR LOGIN VetClerk
+ALTER ROLE db_datareader ADD MEMBER VetClerk
+;
+GO
+
+
 
 
 
@@ -171,14 +177,16 @@ CONSTRAINT CK_NoFuturePayments CHECK (PaymentDate <= GETDATE())
 
 GO
 
-GRANT SELECT ON AnimalTypeReference TO VetClerk
-GRANT SELECT ON Billing TO VetClerk
-GRANT SELECT ON Clients TO VetClerk
-GRANT SELECT ON Employees TO VetClerk
-GRANT SELECT ON Patients TO VetClerk
-GRANT SELECT ON Payments TO VetClerk
-GRANT SELECT ON Visits TO VetClerk
+--GRANT SELECT ON AnimalTypeReference TO VetClerk
+--GRANT SELECT ON Billing TO VetClerk
+--GRANT SELECT ON Clients TO VetClerk
+--GRANT SELECT ON Employees TO VetClerk
+--GRANT SELECT ON Patients TO VetClerk
+--GRANT SELECT ON Payments TO VetClerk
+--GRANT SELECT ON Visits TO VetClerk
 
+DENY ALL ON OBJECT :: VeterinaryDB.dbo.ClientContacts TO VetClerk 
+DENY ALL ON OBJECT :: VeterinaryDB.dbo.EmployeeContactInfo TO VetClerk
 
 GO
 
@@ -300,3 +308,24 @@ ON V.VisitID = B.VisitID
 WHERE @Client = ClientID
 
 END
+
+GO
+
+CREATE PROC sp_EmployMailList
+
+AS
+BEGIN
+	SELECT E.FirstName, E.MiddleName, E.LastName, AddressLine1, AddressLine2, City, StateProvince, PostalCode, Phone
+	FROM Employees E
+	INNER JOIN EmployeeContactInfo I
+	ON I.EmployeeID = E.EmployeeID
+
+END
+
+GO
+
+GRANT EXECUTE ON sp_EmployMailList TO VetClerk
+GRANT EXECUTE ON sp_ClientPayInfo TO VetClerk
+GRANT EXECUTE ON sp_BreedSearch TO VetClerk
+GRANT EXECUTE ON sp_SpeciesSearch TO VetClerk
+
