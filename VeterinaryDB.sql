@@ -209,9 +209,9 @@ VALUES ('Dog', 'German Shepherd'), ('Horse', 'American Quarter'), ('Cat', 'Russi
 
 INSERT Patients (ClientID, PatName, AnimalType, Color, Gender, BirthYear, [Weight], 
 				[Description], GeneralNotes, Chipped, RabiesVacc)
-VALUES (1, 'Snuffles', 1, 'Black', 'F', '2005', '12.6', NULL, 'Came in with irritated bowels. Found blockage consisting of hair and cereal. Medication was given to help pass blockage.', 0, '2-17-2016'),
-		(2, 'Mystery', 2, 'White', 'M', '1999', '1080.55', NULL, 'Yearly checkup. Impeccably cared for. No health issues found.', 0, '8-22-2016'),
-		(2, 'Shebana', 2, 'Chestnut', 'F', '1997', '1074.8', NULL, 'Yearly checkup. Impeccably cared for. No health issues found.', 0, '8-22-2016'),
+VALUES (1, 'Snuffles', 1, 'Black', 'M', '2005', '12.6', NULL, 'Quite shaggy. Rough temperament. Slow to trust.', 0, '2-17-2016'),
+		(2, 'Mystery', 2, 'White', 'M', '1999', '1080.55', NULL, 'Very calm temperament. Excellent strength.', 0, '8-22-2016'),
+		(2, 'Shebana', 2, 'Chestnut', 'F', '1997', '1074.8', NULL, 'Quite rambunctious. Overall friendly attitude, but likes to move around a lot, which makes for a slightly harder time treating.', 0, '8-22-2016'),
 		(3, 'Andy', 3, 'Grey', 'M', '1999', '11.52', NULL, 'Legs had stopped functioning due to age. Had to be put down.', 1, '4-28-2016'),
 		(4, 'Crookshanks', 4, 'Ginger', 'F', '2004', '11.5', NULL, 'Yearly checkup. Seems to be mostly fine. Needs help with thick coat.', 0, '10-13-2017'),
 		(4, 'Kneazie', 5, NULL, 'F', '2007', '5.5', NULL, 'Yearly checkup. A bit underweight. Should be fed more.', 0, '10-13-2017'),
@@ -236,9 +236,12 @@ VALUES (1, 1, '1489 NE 45th Lane', 'Apt. #268', 'Ocala', 'Florida', '34472', '35
 (7, 1, '8768 NW 24th Court', NULL, 'Ocala', 'Florida', '34475', '352-983-6662', NULL, 'grantf1991@coldpost.com')
 
 
---INSERT Visits (StartTime, EndTime, Appointment, DiagnosisCode, ProcedureCode, VisitNotes, PatientID, EmployeeID)
---VALUES ('', '', , '', '', '', , ,), ('', '', , '', '', '', , ,), ('', '', , '', '', '', , ,),
---('', '', , '', '', '', , ,), ('', '', , '', '', '', , ,)
+INSERT Visits (StartTime, EndTime, Appointment, DiagnosisCode, ProcedureCode, VisitNotes, PatientID, EmployeeID)
+VALUES ('05-22-2016 14:30:00.000', '05-22-2016 15:14:00.000', 1, '1920346697', '1P6924', 'Came in with irritated bowels. Found blockage consisting of hair and cereal. Medication was given to help pass blockage.', 1, 2), 
+('08-22-2016 12:30:00.000', '08-22-2016 13:23:00.000', 1, '1119871499', '0T2134', 'Yearly checkup. Both horses impeccably cared for. No health issues found.', 2, 2), 
+('', '', 1, '839014122G', '4C3209', '', 3, 6),
+('', '', 1, '3829104123', '8F8934', '', 4, 2), 
+('', '', 0, '806952124G', '6B3298', '', 5, 6)
 
 --INSERT Billing (BillDate, ClientID, VisitID, Amount)
 --VALUES ('', 1, 1, ''), ('', 2, 2, ''), ('', 3, 3, ''), ('', 4, 4, ''), ('', 5, 5, '')
@@ -329,3 +332,59 @@ GRANT EXECUTE ON sp_ClientPayInfo TO VetClerk
 GRANT EXECUTE ON sp_BreedSearch TO VetClerk
 GRANT EXECUTE ON sp_SpeciesSearch TO VetClerk
 
+GO
+
+CREATE PROC sp_ClientInsert
+(
+@FirstName VARCHAR(25),
+@LastName VARCHAR(25),
+@AddressType INT,
+@AddLine1 VARCHAR(50),
+@City VARCHAR(35),
+@StateProvince VARCHAR(25),
+@ZIPCode VARCHAR(15),
+@Phone VARCHAR(15),
+@NewID INT OUTPUT
+)
+AS
+BEGIN
+	INSERT Clients (FirstName, LastName)
+	VALUES (@FirstName, @LastName)
+	SET @NewID = (SELECT TOP 1 SCOPE_IDENTITY() FROM Clients) 
+	INSERT ClientContacts (ClientID, AddressType, AddressLine1, City, StateProvince, PostalCode, Phone)
+	VALUES (@NewID, @AddressType, @AddLine1, @City, @StateProvince, @ZIPCode, @Phone)
+
+	SELECT @NewID [New Client ID]
+
+END
+GO
+
+CREATE PROC sp_EmployeeInsert
+(
+@FirstName VARCHAR(25),
+@LastName VARCHAR(25),
+@MiddleName VARCHAR(25),
+@HireDate DATE,
+@JobTitle VARCHAR(50),
+@AddressType INT,
+@AddLine1 VARCHAR(50),
+@City VARCHAR(35),
+@StateProvince VARCHAR(25),
+@ZIPCode VARCHAR(15),
+@Phone VARCHAR(15),
+@NewID INT OUTPUT
+)
+AS
+BEGIN
+	
+	INSERT Employees(LastName, FirstName, MiddleName, HireDate, Title)
+	VALUES (@LastName, @FirstName, @MiddleName, @HireDate, @JobTitle)
+	SET @NewID = (SELECT TOP 1 SCOPE_IDENTITY() FROM Employees) 
+	INSERT EmployeeContactInfo(EmployeeID, AddressType, AddressLine1, City, StateProvince, PostalCode, Phone)
+	VALUES (@NewID, @AddressType, @AddLine1, @City, @StateProvince, @ZIPCode, @Phone)
+
+	SELECT @NewID [New Employee ID]
+
+
+END
+GO
