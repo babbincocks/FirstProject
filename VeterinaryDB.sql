@@ -156,7 +156,7 @@ BillID INT IDENTITY(1,1),
 BillDate DATE NOT NULL,
 ClientID INT NOT NULL,
 VisitID INT NOT NULL,
-Amount DECIMAL NOT NULL
+Amount DECIMAL(15,2) NOT NULL
 CONSTRAINT PK_BillID PRIMARY KEY (BillID),
 CONSTRAINT FK_Billing_Clients FOREIGN KEY (ClientID) REFERENCES Clients(ClientID),
 CONSTRAINT FK_Billing_Visits FOREIGN KEY (VisitID) REFERENCES Visits(VisitID),
@@ -212,10 +212,10 @@ INSERT Patients (ClientID, PatName, AnimalType, Color, Gender, BirthYear, [Weigh
 VALUES (1, 'Snuffles', 1, 'Black', 'M', '2005', '12.6', NULL, 'Quite shaggy. Rough temperament. Slow to trust.', 0, '2-17-2016'),
 		(2, 'Mystery', 2, 'White', 'M', '1999', '1080.55', NULL, 'Very calm temperament. Excellent strength.', 0, '8-22-2016'),
 		(2, 'Shebana', 2, 'Chestnut', 'F', '1997', '1074.8', NULL, 'Quite rambunctious. Overall friendly attitude, but likes to move around a lot, which makes for a slightly harder time treating.', 0, '8-22-2016'),
-		(3, 'Andy', 3, 'Grey', 'M', '1999', '11.52', NULL, 'Legs had stopped functioning due to age. Had to be put down.', 1, '4-28-2016'),
-		(4, 'Crookshanks', 4, 'Ginger', 'F', '2004', '11.5', NULL, 'Yearly checkup. Seems to be mostly fine. Needs help with thick coat.', 0, '10-13-2017'),
+		(3, 'Andy', 3, 'Grey', 'M', '1999', '11.52', NULL, 'Very old and fragile. Very friendly, all things considered.', 1, '4-28-2016'),
+		(4, 'Crookshanks', 4, 'Ginger', 'F', '2004', '11.5', NULL, 'Very thick coated. Do not touch tail. ', 0, '10-13-2017'),
 		(4, 'Kneazie', 5, NULL, 'F', '2007', '5.5', NULL, 'Yearly checkup. A bit underweight. Should be fed more.', 0, '10-13-2017'),
-		(5, 'Lodne Dreng', 6, NULL, 'M', '2010', '12', NULL, 'Came in unresponsive. Was able to resuscitate, and made a full recovery. Cause seems to have been carrot lodged in throat.', 1, '1-22-2017')
+		(5, 'Lodne Dreng', 6, NULL, 'M', '2010', '12', NULL, 'Small pug. Was very excitable once revived.', 1, '1-22-2017')
 
 INSERT Employees (LastName, FirstName, MiddleName, HireDate, Title)
 VALUES ('Richards', 'Riquita', 'Maya', '4-14-2014', 'Desk Receptionist'),
@@ -238,13 +238,14 @@ VALUES (1, 1, '1489 NE 45th Lane', 'Apt. #268', 'Ocala', 'Florida', '34472', '35
 
 INSERT Visits (StartTime, EndTime, Appointment, DiagnosisCode, ProcedureCode, VisitNotes, PatientID, EmployeeID)
 VALUES ('05-22-2016 14:30:00.000', '05-22-2016 15:14:00.000', 1, '1920346697', '1P6924', 'Came in with irritated bowels. Found blockage consisting of hair and cereal. Medication was given to help pass blockage.', 1, 2), 
-('08-22-2016 12:30:00.000', '08-22-2016 13:23:00.000', 1, '1119871499', '0T2134', 'Yearly checkup. Both horses impeccably cared for. No health issues found.', 2, 2), 
-('', '', 1, '839014122G', '4C3209', '', 3, 6),
-('', '', 1, '3829104123', '8F8934', '', 4, 2), 
-('', '', 0, '806952124G', '6B3298', '', 5, 6)
+('08-22-2016 12:30:00.000', '08-22-2016 13:23:00.000', 1, '1119871499', '0T2134', 'Yearly checkup. Both American Quarter horses, impeccably cared for. No health issues found.', 2, 2), 
+('02-10-2017 8:30:00.000', '02-10-2017 9:20:00.000', 1, '839014122G', '4C3209', 'Legs had stopped functioning due to age. Had to be put down.', 3, 6),
+('04-27-2017 14:00:00.000', '04-27-2017 15:12:00.000', 1, '3829104123', '8F8934', 'Yearly checkup for two cats: Himalayan female and Sphynx female. Himalayan was almost in perfect health; coat is a bit too thick for it and should be trimmed. Sphynx was a bit underweight, but other than that was healthy. New diet was set up.', 4, 2), 
+('07-25-2017 6:16:00.000', '07-25-2017 9:23:00.000', 0, '806952124G', '6B3298', 'Came in unresponsive. Was able to resuscitate, and made a full recovery. Cause seems to have been carrot lodged in throat.', 5, 6)
 
---INSERT Billing (BillDate, ClientID, VisitID, Amount)
---VALUES ('', 1, 1, ''), ('', 2, 2, ''), ('', 3, 3, ''), ('', 4, 4, ''), ('', 5, 5, '')
+INSERT Billing (BillDate, ClientID, VisitID, Amount)
+VALUES ('05-22-2016', 1, 1, 215.00), ('08-22-2016', 2, 2, 540.25), 
+('02-13-2017', 3, 3, 115.00), ('04-27-2017', 4, 4, 365.17), ('07-28-2017', 5, 5, 415.50)
 
 
 GO
