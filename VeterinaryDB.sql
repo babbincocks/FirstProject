@@ -214,7 +214,7 @@ VALUES (1, 'Snuffles', 1, 'Black', 'M', '2005', '12.6', NULL, 'Quite shaggy. Rou
 		(2, 'Shebana', 2, 'Chestnut', 'F', '1997', '1074.8', NULL, 'Quite rambunctious. Overall friendly attitude, but likes to move around a lot, which makes for a slightly harder time treating.', 0, '8-22-2016'),
 		(3, 'Andy', 3, 'Grey', 'M', '1999', '11.52', NULL, 'Very old and fragile. Very friendly, all things considered.', 1, '4-28-2016'),
 		(4, 'Crookshanks', 4, 'Ginger', 'F', '2004', '11.5', NULL, 'Very thick coated. Do not touch tail. ', 0, '10-13-2017'),
-		(4, 'Kneazie', 5, NULL, 'F', '2007', '5.5', NULL, 'Yearly checkup. A bit underweight. Should be fed more.', 0, '10-13-2017'),
+		(4, 'Kneazie', 5, NULL, 'F', '2007', '5.5', NULL, 'Small sphynx. Really likes to be touched.', 0, '10-13-2017'),
 		(5, 'Lodne Dreng', 6, NULL, 'M', '2010', '12', NULL, 'Small pug. Was very excitable once revived.', 1, '1-22-2017')
 
 INSERT Employees (LastName, FirstName, MiddleName, HireDate, Title)
