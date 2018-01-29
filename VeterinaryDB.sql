@@ -392,3 +392,10 @@ BEGIN
 
 END
 GO
+
+GRANT EXECUTE ON sp_EmployMailList TO VetManager
+GRANT EXECUTE ON sp_ClientPayInfo TO VetManager
+GRANT EXECUTE ON sp_BreedSearch TO VetManager
+GRANT EXECUTE ON sp_SpeciesSearch TO VetManager
+GRANT EXECUTE ON sp_ClientInsert TO VetManager
+GRANT EXECUTE ON sp_EmployeeInsert TO VetManager
