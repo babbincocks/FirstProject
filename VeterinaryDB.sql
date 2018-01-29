@@ -169,7 +169,7 @@ PaymentID INT IDENTITY(1,1),
 PaymentDate DATE NOT NULL,
 BillID INT NULL,
 Notes VARCHAR(2048) NULL,
-Amount DECIMAL NOT NULL
+Amount DECIMAL(15,2) NOT NULL
 CONSTRAINT PK_PaymentID PRIMARY KEY (PaymentID),
 CONSTRAINT FK_Payments_Billing FOREIGN KEY (BillID) REFERENCES Billing(BillID),
 CONSTRAINT CK_NoFuturePayments CHECK (PaymentDate <= GETDATE())
@@ -247,6 +247,10 @@ INSERT Billing (BillDate, ClientID, VisitID, Amount)
 VALUES ('05-22-2016', 1, 1, 215.00), ('08-22-2016', 2, 2, 540.25), 
 ('02-13-2017', 3, 3, 115.00), ('04-27-2017', 4, 4, 365.17), ('07-28-2017', 5, 5, 415.50)
 
+INSERT Payments (PaymentDate, BillID, Notes, Amount)
+VALUES ('05-22-2016', 1, NULL, 100.00), ('05-24-2016', 1, NULL, 115.00), ('08-22-2016', 2, NULL, 540.25),
+('02-21-2017', 3, NULL, 115.00), ('04-27-2017', 4, NULL, 365.17), ('07-28-2017', 5, NULL, 102.25), ('08-07-2017', 5, NULL, 175.00),
+('08-11-2017', 5, NULL, 138.25)
 
 GO
 CREATE PROC sp_SpeciesSearch
@@ -314,7 +318,6 @@ WHERE @Client = ClientID
 END
 
 GO
-
 CREATE PROC sp_EmployMailList
 
 AS
